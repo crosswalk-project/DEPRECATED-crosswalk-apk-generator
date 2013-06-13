@@ -44,14 +44,14 @@ var TizenConfig = require('../../lib/tizen-config');
 describe('TizenConfig', function () {
   it('getMeta() should invoke callback with error if file doesn\'t exist', function (done) {
     var tc = TizenConfig.create({
-      parser: mockParser(true),
-      configFile: path.join(dataDir, 'config.xml')
+      parser: mockParser(),
+      configFile: null
     });
 
     var cb = function () {
       var spy = sinon.spy();
       spy.apply(null, arguments);
-      spy.calledWith(mockConfigBadError).should.be.true;
+      spy.calledWith(sinon.match.instanceOf(Error)).should.be.true;
       done();
     };
 
@@ -75,9 +75,47 @@ describe('TizenConfig', function () {
 
     tc.getMeta(cb);
   });
-});
 
-describe('TizenConfig', function () {
-  it('getMeta() should invoke callback with error if config.xml parse fails', function () {
+  it('getMeta() should invoke callback with error if config.xml parse fails', function (done) {
+    var tc = TizenConfig.create({
+      parser: mockParser(true),
+      configFile: path.join(dataDir, 'config.xml')
+    });
+
+    var cb = function () {
+      var spy = sinon.spy();
+      spy.apply(null, arguments);
+      spy.calledWith(mockConfigBadError).should.be.true;
+      done();
+    };
+
+    tc.getMeta(cb);
+  });
+
+  it('getMeta() should return cached config on second and subsequent calls', function (done) {
+    var tc = TizenConfig.create({
+      parser: mockParser(),
+      configFile: path.join(dataDir, 'config.xml')
+    });
+
+    var expectedResult = {uri: 'uri', id: 'id'};
+
+    var cb = function () {
+      var spy = sinon.spy();
+      spy.apply(null, arguments);
+      spy.calledWith(null, sinon.match(expectedResult)).should.be.true;
+      done();
+    };
+
+    // two calls to getMeta(); the second call should return the cached
+    // config
+    tc.getMeta(function () {
+      // reset the configFile location; this ensures that if getMeta()
+      // is called twice and caching doesn't happen, we get an error
+      // (as getMeta() will try to load the non-existent file and parse it)
+      tc.configFile = null;
+
+      tc.getMeta(cb);
+    });
   });
 });

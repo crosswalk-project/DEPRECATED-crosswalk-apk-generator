@@ -9,13 +9,14 @@ module.exports = function (grunt) {
         reportDir: 'build',
         browserCmd: 'google-chrome'
       },
-      all: {
+      unit: {
         files: { src: 'test/unit/*.test.js' },
         reporter: 'dot'
       }
     }
   });
 
-  grunt.registerTask('test', 'mochaccino:all');
+  grunt.registerTask('test', 'mochaccino:unit');
+  grunt.registerTask('cov', 'mochaccino:cov');
   grunt.registerTask('default', 'test');
 };
