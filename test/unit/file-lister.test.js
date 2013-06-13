@@ -1,6 +1,6 @@
 require('chai').should();
-var path = require('path');
 
+var path = require('path');
 var dataDir = path.join(__dirname, 'data');
 
 var fileLister = require('../../lib/file-lister');
@@ -15,4 +15,4 @@ describe('file lister', function () {
 
     latest.should.equal(path.join(dataDir, 'youngest.txt'));
   });
-})
+});
