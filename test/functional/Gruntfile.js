@@ -7,7 +7,7 @@ module.exports = function (grunt) {
         action: 'push',
         overwrite: false,
         remoteDir: '/home/developer',
-        localFiles: '../../tasks/tizen-app.sh'
+        localFiles: '../../scripts/tizen-app.sh'
       },
 
       push: {
@@ -15,7 +15,7 @@ module.exports = function (grunt) {
         overwrite: true,
         chmod: '+x',
         remoteDir: '/home/developer',
-        localFiles: '../../tasks/tizen-app.sh'
+        localFiles: '../../scripts/tizen-app.sh'
       },
 
       pushPackage: {

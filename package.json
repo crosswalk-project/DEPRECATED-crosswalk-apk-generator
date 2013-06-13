@@ -24,6 +24,7 @@
     "grunt-mochaccino": "0.0.1",
     "blanket": "~1.1.5",
     "chai": "~1.6.1",
-    "sinon": "~1.7.2"
+    "sinon": "~1.7.2",
+    "grunt-contrib-jshint": "~0.6.0"
   }
 }

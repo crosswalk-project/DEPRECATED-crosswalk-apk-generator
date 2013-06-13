@@ -11,6 +11,8 @@
  * grunt-tizen: Tizen-related tasks for grunt
  */
 module.exports = function (grunt) {
+  'use strict';
+
   // TODO temporary while code moves to bridge.js
   var bridge = require('../lib/bridge').init({
     sdbCmd: process.env.SDB,
@@ -25,13 +27,6 @@ module.exports = function (grunt) {
     // TODO this should come from grunt-tizen configuration
     configFile: 'data/config.xml'
   });
-
-  var path = require('path');
-  var fs = require('fs');
-  var exec = require('child_process').exec;
-
-  var _ = require('lodash');
-  var async = require('async');
 
   // ACTIONS
 
@@ -155,7 +150,7 @@ module.exports = function (grunt) {
     var remoteScript = config.remoteScript;
     var localPort = config.localPort || '8888';
     var browserCmd = config.browserCmd || null;
-    var stopOnFailure = (config.stopOnFailure === true ? true : false)
+    var stopOnFailure = (config.stopOnFailure === true ? true : false);
 
     var cb = done;
 
