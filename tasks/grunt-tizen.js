@@ -13,27 +13,29 @@
 module.exports = function (grunt) {
   'use strict';
 
-  // TODO create objects with config properties in grunt.registerMultTask()
-  var sdbWrapper = require('../lib/sdb-wrapper').create({
-    sdbCmd: process.env.SDB
-  });
+  var path = require('path');
+  var TIZEN_APP_SCRIPT = path.join(__dirname, '../scripts/tizen-app.sh');
 
   var fileLister = require('../lib/file-lister');
   var browserWrapper = require('../lib/browser-wrapper');
+
+  // TODO create objects with config properties in grunt.registerMultiTask()
+  var sdbWrapper = require('../lib/sdb-wrapper').create({
+    sdbCmd: process.env.SDB
+  });
 
   var bridge = require('../lib/bridge').init({
     sdbWrapper: sdbWrapper,
     logger: grunt.log,
     fileLister: fileLister,
-    browserWrapper: browserWrapper
+    browserWrapper: browserWrapper,
+    tizenAppScriptPath: '/home/developer/tizen-app.sh'
   });
 
   var parser = new (require('xml2js').Parser)();
 
   var tizenConfig = require('../lib/tizen-config').create({
     parser: parser,
-
-    // TODO this should come from grunt-tizen configuration
     configFile: 'data/config.xml'
   });
 
@@ -75,7 +77,6 @@ module.exports = function (grunt) {
    * install: install a wgt file on the device; NB the file needs
    * to be on the device first
    *
-   * config.remoteScript: the tizen-app.sh script location on the device
    * config.remoteFiles: full path to a file, array of full paths to
    * files, or a {pattern: xxx, filter: yyy} object, where xxx is a file
    * glob for the remote filesystem and yyy; can be set to 'latest' to
@@ -86,24 +87,22 @@ module.exports = function (grunt) {
    * a non-null value if an error occurs
    */
   var install = function (config, done) {
-    // TODO errors if config is missing
-    bridge.install(config.remoteScript, config.remoteFiles, done);
+    if (!config.remoteFiles) {
+      grunt.fatal('tizen:install needs remoteFiles property');
+    }
+
+    bridge.install(config.remoteFiles, done);
   };
 
   /**
    * uninstall: uninstall a package by its ID
    *
-   * config.remoteScript: the tizen-app.sh script location on the device
-   * config.config: local location of config.xml (default='config.xml');
-   * this is used as the source for the app ID (the URI in widget[@id])
-   * config.sdbCmd: the sdb binary path (default='sdb')
-   * done: function with signature done(err), where err is set to
-   * a non-null value if an error occurs
    * config.stopOnFailure: if true and uninstall fails, stop grunt
    * (default: false)
+   * done: function with signature done(err), where err is set to
+   * a non-null value if an error occurs
    */
   var uninstall = function (config, done) {
-    // TODO errors on missing config
     var stopOnFailure = (config.stopOnFailure === true ? true : false);
 
     tizenConfig.getMeta(function (err, meta) {
@@ -111,7 +110,7 @@ module.exports = function (grunt) {
         done(err);
       }
       else {
-        bridge.uninstall(config.remoteScript, meta.id, stopOnFailure, done);
+        bridge.uninstall(meta.id, stopOnFailure, done);
       }
     });
   };
@@ -119,13 +118,17 @@ module.exports = function (grunt) {
   /**
    * script: run an arbitrary script on the device
    *
-   * config.remoteScript: full path to remote script
+   * config.remoteScript: remote script to run
    * NB the remote script is passed the following arguments by default:
    *   $1 == the URI of the widget (widget.id from config.xml)
    *   $2 == the ID of the widget (tizen:application.id from config.xml)
    * config.args: additional arguments to pass
    */
   var script = function (config, done) {
+    if (!config.remoteScript) {
+      grunt.fail('script task requires a remoteScript property');
+    }
+
     var args = config.args || [];
 
     tizenConfig.getMeta(function (err, meta) {
@@ -142,8 +145,6 @@ module.exports = function (grunt) {
   /**
    * launch: start/stop application
    *
-   * config.remoteScript: the tizen-app.sh script location on the device
-   * config.config: location of config.xml (default='config.xml')
    * config.localPort: local port which is forwarded to the debug port
    * for this app on the device (default=8888)
    * config.stopOnFailure: true to stop if the launch command fails
@@ -156,7 +157,6 @@ module.exports = function (grunt) {
    * a non-null value if an error occurs
    */
   var launch = function (config, subcommand, done) {
-    var remoteScript = config.remoteScript;
     var localPort = config.localPort || '8888';
     var browserCmd = config.browserCmd || null;
     var stopOnFailure = (config.stopOnFailure === true ? true : false);
@@ -168,8 +168,8 @@ module.exports = function (grunt) {
         if (err) {
           done(err);
         }
-        else {
-          var remotePort = result.match(/PORT (\d+)/)[1];
+        else if (result = result.match(/PORT (\d+)/)) {
+          var remotePort = result[1];
 
           bridge.portForward(localPort, remotePort, function (err) {
             if (err) {
@@ -183,6 +183,9 @@ module.exports = function (grunt) {
             }
           });
         }
+        else {
+          done(new Error('no remote port available for debugging'));
+        }
       };
     }
 
@@ -191,10 +194,26 @@ module.exports = function (grunt) {
         cb(err);
       }
       else {
-        bridge.launch(remoteScript, subcommand, meta.uri, stopOnFailure, cb);
+        bridge.launch(subcommand, meta.uri, stopOnFailure, cb);
       }
     });
   };
+
+  /**
+   * Push the tizen-app.sh script up to the device.
+   */
+  grunt.registerTask('tizen_prepare', 'Prepare for Tizen grunt tasks', function () {
+    var config = grunt.config.get('tizen_prepare');
+
+    var done = this.async();
+
+    push({
+      localFiles: TIZEN_APP_SCRIPT,
+      remoteDir: config.tizenAppScriptDir,
+      chmod: '+x',
+      overwrite: true
+    }, done);
+  });
 
   /**
    * grunt tizen:* task
@@ -220,30 +239,16 @@ module.exports = function (grunt) {
    *   stop (see launch())
    *   debug (see launch())
    *
-   * To be able to use these actions, you should first set up a
-   * push action to send the tizen-app.sh script to the device.
-   * Configure in grunt.initConfig() like this (the example creates
-   * a grunt tizen:prepare task which pushes the tizen-app.sh control
-   * script to the device):
+   * To be able to use these actions, you should configure and run
+   * grunt tizen:prepare to push the tizen-app.sh script to the device:
    *
-   *   grunt.initConfig({
-   *     // ... other config ...
-   *
-   *     tizen: {
-   *       prepare: {
-   *         action: 'push',
-   *         localFiles: './tools/grunt-tasks/tizen-app.sh',
-   *         remoteDestDir: '/home/developer/',
-   *         chmod: '+x',
-   *         overwrite: true,
-   *         asRoot: true
-   *       },
-   *
-   *       // ... more tizen task config here ...
+   *   tizen: {
+   *     _configuration: {
+   *       tizenAppScriptDir: '/home/developer/'
    *     }
-   *   });
+   *   }
    *
-   * Then call with grunt like this:
+   * then:
    *
    *   grunt tizen:prepare
    *
@@ -251,15 +256,13 @@ module.exports = function (grunt) {
    * other tasks to make use of it, e.g.
    *
    * tizen: {
-   *   prepare: { ... see above ... },
-   *
    *   pushwgt: {
    *     action: 'push',
    *     localFiles: {
    *       pattern: 'build/*.wgt',
    *       filter: 'latest'
    *     },
-   *     remoteDestDir: '/home/developer/'
+   *     remoteDir: '/home/developer/'
    *   },
    *
    *   install: {
@@ -267,8 +270,7 @@ module.exports = function (grunt) {
    *     remoteFiles: {
    *       pattern: '/home/developer/*.wgt',
    *       filter: 'latest'
-   *     },
-   *     remoteScript: '/home/developer/tizen-app.sh'
+   *     }
    *   }
    * }
    *
@@ -287,8 +289,10 @@ module.exports = function (grunt) {
    * alternatively, set the sdbCmd property on a task to your sdb path.
    */
   grunt.registerMultiTask('tizen', 'manage Tizen applications', function () {
+    // TODO create Bridge etc. here
     this.data.sdbCmd = this.data.sdbCmd || process.env.SDB || 'sdb';
     this.data.config = this.data.config || 'config.xml';
+
     var asRoot = this.data.asRoot || false;
     var action = this.data.action;
 

@@ -2,18 +2,14 @@ module.exports = function (grunt) {
   grunt.loadTasks('../../tasks');
 
   grunt.initConfig({
+    tizen_prepare: {
+      tizenAppScriptDir: '/home/developer'
+    },
+
     tizen: {
       pushFail: {
         action: 'push',
         overwrite: false,
-        remoteDir: '/home/developer',
-        localFiles: '../../scripts/tizen-app.sh'
-      },
-
-      push: {
-        action: 'push',
-        overwrite: true,
-        chmod: '+x',
         remoteDir: '/home/developer',
         localFiles: '../../scripts/tizen-app.sh'
       },
@@ -87,7 +83,6 @@ module.exports = function (grunt) {
   });
 
   grunt.registerTask('default', [
-    'tizen:push',
     'tizen:pushDumpScript',
     'tizen:stop',
     'tizen:pushPackage',

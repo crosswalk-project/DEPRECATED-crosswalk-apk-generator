@@ -21,7 +21,8 @@ module.exports = function (grunt) {
         globals: {
           'require': false,
           'module': false,
-          'process': false
+          'process': false,
+          '__dirname': false
         },
 
         unused: true,
