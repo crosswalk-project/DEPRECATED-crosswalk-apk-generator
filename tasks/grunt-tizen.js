@@ -189,23 +189,27 @@ module.exports = function (grunt) {
         if (err) {
           done(err);
         }
-        else if (result = result.match(/PORT (\d+)/)) {
-          var remotePort = result[1];
-
-          bridge.portForward(localPort, remotePort, function (err) {
-            if (err) {
-              done(err);
-            }
-            else if (browserCmd) {
-              bridge.runBrowser(browserCmd, localPort, done);
-            }
-            else {
-              done();
-            }
-          });
-        }
         else {
-          done(new Error('no remote port available for debugging'));
+          result = result.match(/PORT (\d+)/);
+
+          if (!result) {
+            done(new Error('no remote port available for debugging'));
+          }
+          else {
+            var remotePort = result[1];
+
+            bridge.portForward(localPort, remotePort, function (err) {
+              if (err) {
+                done(err);
+              }
+              else if (browserCmd) {
+                bridge.runBrowser(browserCmd, localPort, done);
+              }
+              else {
+                done();
+              }
+            });
+          }
         }
       };
     }

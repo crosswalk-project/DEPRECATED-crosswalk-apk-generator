@@ -1,18 +1,113 @@
-require('chai').should();
+var chai = require('chai')
+chai.should();
+var expect = chai.expect;
+var sinon = require('sinon');
 
 var path = require('path');
-var dataDir = path.join(__dirname, 'data');
+var fs = require('fs');
 
 var fileLister = require('../../lib/file-lister');
+
+var dataDir = path.join(__dirname, 'data');
+var olderPath = path.join(dataDir, 'older.txt');
+var oldestPath = path.join(dataDir, 'oldest.txt')
+var youngestPath = path.join(dataDir, 'youngest.txt')
 
 describe('file lister', function () {
   it('should list files in time order', function () {
     var latest = fileLister.getLatest([
-      path.join(dataDir, 'older.txt'),
-      path.join(dataDir, 'oldest.txt'),
-      path.join(dataDir, 'youngest.txt')
+      oldestPath,
+      olderPath,
+      youngestPath
     ]);
 
-    latest.should.equal(path.join(dataDir, 'youngest.txt'));
+    latest.should.equal(youngestPath);
+  });
+
+  it('should return an error if localFiles is invalid', function (done) {
+    var spy = sinon.spy();
+
+    var cb = function () {
+      spy.apply(null, arguments);
+      spy.calledWith(sinon.match.instanceOf(Error)).should.be.true;
+      done();
+    };
+
+    var list = fileLister.list(null, cb);
+  });
+
+  it('should return the original string in an array if localFiles is a single string', function (done) {
+    var spy = sinon.spy();
+
+    var cb = function () {
+      spy.apply(null, arguments);
+      spy.calledWith(null, ['foo.txt']).should.be.true;
+      done();
+    };
+
+    var list = fileLister.list('foo.txt', cb);
+  });
+
+  it('should return an error if pattern is invalid', function (done) {
+    var spy = sinon.spy();
+
+    var cb = function () {
+      spy.apply(null, arguments);
+      spy.calledWith(sinon.match.instanceOf(Error)).should.be.true;
+      done();
+    };
+
+    var list = fileLister.list({pattern: null}, cb);
+  });
+
+  it('should list files matching a glob', function (done) {
+    var spy = sinon.spy();
+
+    var expected = [ olderPath, oldestPath ];
+
+    var cb = function () {
+      spy.apply(null, arguments);
+      spy.lastCall.args[1].should.deep.equal(expected);
+      done();
+    };
+
+    var glob = path.join(dataDir, 'old*');
+    var list = fileLister.list({pattern: glob}, cb);
+  });
+
+  it('should return the most-recently-modified file matching a glob', function (done) {
+    var spy = sinon.spy();
+
+    var expected = [ olderPath ];
+
+    var cb = function () {
+      spy.apply(null, arguments);
+      spy.lastCall.args[1].should.deep.equal(expected);
+
+      // manual check that the returned file is correct
+      var mtimeOlder = fs.statSync(olderPath).mtime.getTime()
+      var mtimeOldest = fs.statSync(oldestPath).mtime.getTime()
+
+      expect(mtimeOlder).to.be.greaterThan(mtimeOldest);
+
+      done();
+    };
+
+    var glob = path.join(dataDir, 'old*');
+    fileLister.list({pattern: glob, filter: 'latest'}, cb);
+  });
+
+  it('should return the original array if a string array is passed in', function (done) {
+    var spy = sinon.spy();
+
+    var expected = [ oldestPath, olderPath ];
+
+    var cb = function () {
+      spy.apply(null, arguments);
+      spy.lastCall.args[1].should.deep.equal(expected);
+      done();
+    };
+
+    fileLister.list([ oldestPath, olderPath ], cb);
   });
 });
