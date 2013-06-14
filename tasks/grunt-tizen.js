@@ -13,10 +13,19 @@
 module.exports = function (grunt) {
   'use strict';
 
-  // TODO temporary while code moves to bridge.js
+  // TODO create objects with config properties in grunt.registerMultTask()
+  var sdbWrapper = require('../lib/sdb-wrapper').create({
+    sdbCmd: process.env.SDB
+  });
+
+  var fileLister = require('../lib/file-lister');
+  var browserWrapper = require('../lib/browser-wrapper');
+
   var bridge = require('../lib/bridge').init({
-    sdbCmd: process.env.SDB,
-    logger: grunt.log
+    sdbWrapper: sdbWrapper,
+    logger: grunt.log,
+    fileLister: fileLister,
+    browserWrapper: browserWrapper
   });
 
   var parser = new (require('xml2js').Parser)();
@@ -161,7 +170,18 @@ module.exports = function (grunt) {
         }
         else {
           var remotePort = result.match(/PORT (\d+)/)[1];
-          bridge.portForward(localPort, remotePort, browserCmd, done);
+
+          bridge.portForward(localPort, remotePort, function (err) {
+            if (err) {
+              done(err);
+            }
+            else if (browserCmd) {
+              bridge.runBrowser(browserCmd, localPort, done);
+            }
+            else {
+              done();
+            }
+          });
         }
       };
     }

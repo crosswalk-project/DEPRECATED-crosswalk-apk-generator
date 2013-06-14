@@ -58,6 +58,11 @@ module.exports = function (grunt) {
         browserCmd: 'google-chrome %URL%'
       },
 
+      debugNoBrowser: {
+        action: 'debug',
+        remoteScript: '/home/developer/tizen-app.sh'
+      },
+
       pushDumpScript: {
         action: 'push',
         localFiles: 'data/dump-localStorage.sh',
