@@ -2,8 +2,10 @@ module.exports = function (grunt) {
   grunt.loadTasks('../../tasks');
 
   grunt.initConfig({
-    tizen_prepare: {
-      tizenAppScriptDir: '/home/developer'
+    tizen_configuration: {
+      tizenAppScriptDir: '/home/developer',
+      configFile: 'data/config.xml',
+      sdbCmd: process.env.SDB
     },
 
     tizen: {
@@ -11,7 +13,7 @@ module.exports = function (grunt) {
         action: 'push',
         overwrite: false,
         remoteDir: '/home/developer',
-        localFiles: '../../scripts/tizen-app.sh'
+        localFiles: '../../scripts/moo.sh'
       },
 
       pushPackage: {
@@ -26,7 +28,6 @@ module.exports = function (grunt) {
 
       install: {
         action: 'install',
-        remoteScript: '/home/developer/tizen-app.sh',
         remoteFiles: {
           pattern: '/home/developer/*.wgt',
           filter: 'latest'
@@ -34,29 +35,24 @@ module.exports = function (grunt) {
       },
 
       uninstall: {
-        action: 'uninstall',
-        remoteScript: '/home/developer/tizen-app.sh'
+        action: 'uninstall'
       },
 
       stop: {
-        action: 'stop',
-        remoteScript: '/home/developer/tizen-app.sh'
+        action: 'stop'
       },
 
       start: {
-        action: 'start',
-        remoteScript: '/home/developer/tizen-app.sh'
+        action: 'start'
       },
 
       debug: {
         action: 'debug',
-        remoteScript: '/home/developer/tizen-app.sh',
         browserCmd: 'google-chrome %URL%'
       },
 
       debugNoBrowser: {
-        action: 'debug',
-        remoteScript: '/home/developer/tizen-app.sh'
+        action: 'debug'
       },
 
       pushDumpScript: {
@@ -83,6 +79,7 @@ module.exports = function (grunt) {
   });
 
   grunt.registerTask('default', [
+    'tizen_prepare',
     'tizen:pushDumpScript',
     'tizen:stop',
     'tizen:pushPackage',
