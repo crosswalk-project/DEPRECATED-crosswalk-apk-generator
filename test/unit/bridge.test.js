@@ -28,15 +28,26 @@ describe('Bridge', function () {
     root: function () {}
   };
 
+  var fileLister = {
+    list: function () {}
+  };
+
   var bridge = Bridge.init({
     logger: logger,
     sdbWrapper: sdbWrapper,
-    fileLister: {}
+    fileLister: fileLister
   });
 
   var mockSdbWrapper;
+  var mockBridge;
   beforeEach(function () {
     mockSdbWrapper = sinon.mock(sdbWrapper);
+    mockBridge = sinon.mock(bridge);
+  });
+
+  afterEach(function () {
+    mockSdbWrapper.restore();
+    mockBridge.restore();
   });
 
   it('should require logger property on creation', function () {
@@ -228,6 +239,235 @@ describe('Bridge', function () {
 
       cb.lastCall.args[1].should.eql(expected);
       mockSdbWrapper.verify();
+    });
+  });
+
+  describe('getDestination()', function () {
+    it('should join basename of local file to remote directory', function () {
+      var localFile = 'build/package.wgt';
+      var remoteDir = '/home/developer/';
+      var expectedRemotePath = '/home/developer/package.wgt';
+      bridge.getDestination(localFile, remoteDir).should.eql(expectedRemotePath);
+    });
+  });
+
+  describe('pushRaw()', function () {
+    var localFile = 'build/package.wgt';
+    var remotePath = '/home/developer/package.wgt';
+
+    it('should callback with no arguments if sdb push successful', function () {
+      var cb = sinon.spy();
+
+      mockSdbWrapper.expects('push')
+                    .withArgs(
+                      localFile,
+                      remotePath,
+                      sinon.match.instanceOf(Function)
+                    )
+                    .callsArgWith(2, null, '', '')
+                    .once();
+
+      bridge.pushRaw(localFile, remotePath, cb);
+
+      cb.calledOnce.should.be.true;
+      expect(cb.lastCall.args.length).to.equal(0);
+      mockSdbWrapper.verify();
+    });
+
+    it('should callback with error thrown by sdb push', function () {
+      var cb = sinon.spy();
+      var err = new Error();
+
+      mockSdbWrapper.expects('push')
+                    .withArgs(
+                      localFile,
+                      remotePath,
+                      sinon.match.instanceOf(Function)
+                    )
+                    .callsArgWith(2, err, '', '')
+                    .once();
+
+      bridge.pushRaw(localFile, remotePath, cb);
+
+      cb.calledWith(err).should.be.true;
+      mockSdbWrapper.verify();
+    });
+
+    it('should callback with error if sdb stderr indicates ' +
+       'that push failed, even if exit code is good', function () {
+      var cb = sinon.spy();
+
+      mockSdbWrapper.expects('push')
+                    .withArgs(
+                      localFile,
+                      remotePath,
+                      sinon.match.instanceOf(Function)
+                    )
+                    .callsArgWith(2, null, '', 'failed to copy')
+                    .once();
+
+      mockSdbWrapper.expects('push')
+                    .withArgs(
+                      localFile,
+                      remotePath,
+                      sinon.match.instanceOf(Function)
+                    )
+                    .callsArgWith(2, null, '', 'cannot stat')
+                    .once();
+
+      bridge.pushRaw(localFile, remotePath, cb);
+      cb.calledWith(sinon.match.instanceOf(Error)).should.be.true;
+      cb.reset();
+
+      bridge.pushRaw(localFile, remotePath, cb);
+      cb.calledWith(sinon.match.instanceOf(Error)).should.be.true;
+
+      mockSdbWrapper.verify();
+    });
+  });
+
+  describe('pushOne()', function () {
+    var localFile = 'build/package.wgt';
+    var remoteDir = '/home/developer/';
+    var expectedRemotePath = '/home/developer/package.wgt';
+
+    it('should callback with no arguments if overwrite false, ' +
+       'no chmod, file doesn\'t exist and push succeeds', function () {
+      var overwrite = false;
+      var chmod = null;
+      var cb = sinon.spy();
+
+      mockBridge.expects('getDestination')
+                .withArgs(localFile, remoteDir)
+                .returns(expectedRemotePath)
+                .once();
+      mockBridge.expects('fileExists')
+                .withArgs(expectedRemotePath, sinon.match.instanceOf(Function))
+                .callsArgWith(1, null, false)
+                .once();
+      mockBridge.expects('pushRaw')
+                .withArgs(
+                  localFile,
+                  expectedRemotePath,
+                  cb
+                )
+                .callsArg(2)
+                .once();
+
+      bridge.pushOne(localFile, remoteDir, overwrite, chmod, cb);
+
+      cb.calledOnce.should.be.true;
+      expect(cb.lastCall.args.length).to.equal(0);
+      mockBridge.verify();
+    });
+
+    it('should log warning and invoke callback if overwrite false, ' +
+       'no chmod, and file exists', function () {
+      var overwrite = false;
+      var chmod = null;
+      var cb = sinon.spy();
+
+      var loggerMock = sinon.mock(logger);
+      loggerMock.expects('warn').once();
+
+      mockBridge.expects('getDestination')
+                .withArgs(localFile, remoteDir)
+                .returns(expectedRemotePath)
+                .once();
+      mockBridge.expects('fileExists')
+                .withArgs(expectedRemotePath, sinon.match.instanceOf(Function))
+                .callsArgWith(1, null, true)
+                .once();
+
+      bridge.pushOne(localFile, remoteDir, overwrite, chmod, cb);
+
+      // cb invoked once with no arguments
+      cb.calledOnce.should.be.true;
+      expect(cb.lastCall.args.length).to.equal(0);
+
+      loggerMock.verify();
+      mockBridge.verify();
+    });
+
+    it('should callback with error if overwrite true, no chmod, ' +
+       'but push fails', function () {
+      var overwrite = true;
+      var chmod = null;
+      var cb = sinon.spy();
+
+      mockBridge.expects('getDestination')
+                .withArgs(localFile, remoteDir)
+                .returns(expectedRemotePath)
+                .once();
+      mockBridge.expects('pushRaw')
+                .withArgs(
+                  localFile,
+                  expectedRemotePath,
+                  cb
+                )
+                .callsArgWith(2, new Error())
+                .once();
+
+      bridge.pushOne(localFile, remoteDir, overwrite, chmod, cb);
+
+      // cb invoked once with error
+      cb.calledOnce.should.be.true;
+      cb.calledWith(sinon.match.instanceOf(Error)).should.be.true;
+
+      mockBridge.verify();
+    });
+
+    it('should callback with error if overwrite false and the fileExists() ' +
+       'check throws an error', function () {
+      var overwrite = false;
+      var chmod = null;
+      var cb = sinon.spy();
+
+      mockBridge.expects('getDestination')
+                .withArgs(localFile, remoteDir)
+                .returns(expectedRemotePath)
+                .once();
+      mockBridge.expects('fileExists')
+                .withArgs(expectedRemotePath, sinon.match.instanceOf(Function))
+                .callsArgWith(1, new Error())
+                .once();
+
+      bridge.pushOne(localFile, remoteDir, overwrite, chmod, cb);
+
+      // cb invoked once with error
+      cb.calledOnce.should.be.true;
+      cb.calledWith(sinon.match.instanceOf(Error)).should.be.true;
+
+      mockBridge.verify();
+    });
+
+    it('should run chmod on pushed file if chmod argument supplied', function () {
+      var overwrite = true;
+      var chmod = '+x';
+      var cb = sinon.spy();
+
+      mockBridge.expects('getDestination')
+                .withArgs(localFile, remoteDir)
+                .returns(expectedRemotePath)
+                .once();
+      mockBridge.expects('pushRaw')
+                .withArgs(
+                  localFile,
+                  expectedRemotePath,
+                  sinon.match.instanceOf(Function)
+                )
+                .callsArg(2)
+                .once();
+      mockBridge.expects('chmod')
+                .withArgs(expectedRemotePath, chmod, cb)
+                .callsArg(2)
+                .once();
+
+      bridge.pushOne(localFile, remoteDir, overwrite, chmod, cb);
+
+      cb.calledOnce.should.be.true;
+      expect(cb.lastCall.args.length).to.equal(0);
+      mockBridge.verify();
     });
   });
 });
