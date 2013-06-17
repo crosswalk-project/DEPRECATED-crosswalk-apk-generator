@@ -88,11 +88,33 @@ describe('Bridge', function () {
     });
 
     it('should callback with false if file does not exist', function () {
+      var cb = sinon.spy();
+      var remotePath = '/tmp/foo.txt';
 
+      mockSdbWrapper.expects('shell')
+                    .withArgs('stat ' + remotePath, sinon.match.instanceOf(Function))
+                    .callsArgWith(1, null, 'No such file or directory', '')
+                    .once();
+
+      bridge.fileExists(remotePath, cb);
+
+      cb.calledWith(null, false).should.be.true;
+      mockSdbWrapper.verify();
     });
 
     it('should callback with error if error occurs when invoking sdb', function () {
+      var cb = sinon.spy();
+      var remotePath = '/tmp/foo.txt';
 
+      mockSdbWrapper.expects('shell')
+                    .withArgs('stat ' + remotePath, sinon.match.instanceOf(Function))
+                    .callsArgWith(1, new Error())
+                    .once();
+
+      bridge.fileExists(remotePath, cb);
+
+      cb.calledWith(sinon.match(Error)).should.be.true;
+      mockSdbWrapper.verify();
     });
   });
 
