@@ -1,8 +1,11 @@
 module.exports = function (grunt) {
   grunt.loadNpmTasks('grunt-contrib-jshint');
+  grunt.loadNpmTasks('grunt-contrib-clean');
   grunt.loadNpmTasks('grunt-mochaccino');
 
   grunt.initConfig({
+    clean: ['build'],
+
     jshint: {
       all: ['lib/**/*.js', 'tasks/**'],
 
