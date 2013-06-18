@@ -572,4 +572,73 @@ describe('Bridge', function () {
       stub.restore();
     });
   });
+
+  describe('runScript()', function () {
+    it('should callback with error if script fails on device', function () {
+      var cmd = '/home/developer/dumpstorage.sh';
+
+      var cb = sinon.spy();
+
+      var err = new Error();
+
+      mockSdbWrapper.expects('shell')
+                    .withArgs(
+                      cmd,
+                      sinon.match.instanceOf(Function)
+                    )
+                    .callsArgWith(1, err)
+                    .once();
+
+      bridge.runScript(cmd, cb);
+
+      cb.calledWith(err).should.be.true;
+      mockSdbWrapper.verify();
+    });
+
+    it('should callback with no arguments if script succeeds on device', function () {
+      var cmd = '/home/developer/dumpstorage.sh';
+
+      var cb = sinon.spy();
+
+      var err = new Error();
+
+      mockSdbWrapper.expects('shell')
+                    .withArgs(
+                      cmd,
+                      sinon.match.instanceOf(Function)
+                    )
+                    .callsArgWith(1)
+                    .once();
+
+      bridge.runScript(cmd, cb);
+
+      cb.calledOnce.should.be.true;
+      expect(cb.lastCall.args.length).to.equal(0);
+      mockSdbWrapper.verify();
+    });
+
+    it('should add arguments to the command if supplied', function () {
+      var args = ['arg1', 'arg2', 'arg3'];
+      var cmd = '/home/developer/dumpstorage.sh';
+      var expected = '/home/developer/dumpstorage.sh arg1 arg2 arg3';
+
+      var cb = sinon.spy();
+
+      var err = new Error();
+
+      mockSdbWrapper.expects('shell')
+                    .withArgs(
+                      expected,
+                      sinon.match.instanceOf(Function)
+                    )
+                    .callsArgWith(1)
+                    .once();
+
+      bridge.runScript(cmd, args, cb);
+
+      cb.calledOnce.should.be.true;
+      expect(cb.lastCall.args.length).to.equal(0);
+      mockSdbWrapper.verify();
+    });
+  });
 });
