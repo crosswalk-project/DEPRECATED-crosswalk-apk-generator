@@ -32,7 +32,7 @@ describe('Bridge', function () {
     list: function () {}
   };
 
-  var bridge = Bridge.init({
+  var bridge = Bridge.create({
     logger: logger,
     sdbWrapper: sdbWrapper,
     fileLister: fileLister
@@ -57,19 +57,21 @@ describe('Bridge', function () {
   var aFunction = sinon.match.instanceOf(Function);
   var anError = sinon.match.instanceOf(Error);
 
-  it('should require logger property on creation', function () {
-    var testConstruct = function () {
-      Bridge.init({})
-    };
+  it('should create a default console logger if none is supplied', function () {
+    var logger = Bridge.create({
+      sdbWrapper: {},
+      fileLister: {}
+    }).logger;
 
-    var expected = 'Bridge must be initialised with a logger instance';
-
-    expect(testConstruct).to.throw(expected);
+    logger.write.should.equal(console.log);
+    logger.ok.should.equal(console.log);
+    logger.warn.should.equal(console.log);
+    logger.error.should.equal(console.error);
   });
 
   it('should require sdbWrapper property on creation', function () {
     var testConstruct = function () {
-      Bridge.init({
+      Bridge.create({
         logger: {}
       })
     };
@@ -81,7 +83,7 @@ describe('Bridge', function () {
 
   it('should require sdbWrapper property on creation', function () {
     var testConstruct = function () {
-      Bridge.init({
+      Bridge.create({
         logger: {},
         sdbWrapper: {}
       })
@@ -652,7 +654,7 @@ describe('Bridge', function () {
   describe('runTizenAppScript()', function () {
     it('should callback with error if tizenAppScriptPath ' +
        'property not set', function () {
-      var bridge = Bridge.init({
+      var bridge = Bridge.create({
         logger: logger,
         fileLister: fileLister,
         sdbWrapper: sdbWrapper
@@ -666,7 +668,7 @@ describe('Bridge', function () {
     });
 
     it('should run tizen-app.sh on device with specified command', function () {
-      var bridge = Bridge.init({
+      var bridge = Bridge.create({
         logger: logger,
         fileLister: fileLister,
         sdbWrapper: sdbWrapper,
@@ -729,7 +731,7 @@ describe('Bridge', function () {
     });
 
     it('should callback with error if missing file/dir', function () {
-      var bridge = Bridge.init({
+      var bridge = Bridge.create({
         logger: logger,
         fileLister: fileLister,
         sdbWrapper: sdbWrapper,
