@@ -1100,4 +1100,58 @@ describe('Bridge', function () {
       bridge.getDebugUrl(9000).should.eql(expected);
     });
   });
+
+  describe('runBrowser()', function () {
+    var debugUrl = 'http://localhost:9000/';
+    var browserCmd = 'foo-browser %URL%';
+    var expectedCmd = 'foo-browser ' + debugUrl;
+
+    beforeEach(function () {
+      bridge.browserWrapper = null;
+    });
+
+    it('should callback with an error if browserWrapper not set', function () {
+      var cb = sinon.spy();
+
+      mockBridge.expects('getDebugUrl').returns(debugUrl).once();
+
+      bridge.runBrowser(browserCmd, 9000, cb);
+
+      cb.calledWith(anError).should.be.true;
+      mockBridge.verify();
+    });
+
+    it('should callback with an error if browserWrapper fails', function () {
+      bridge.browserWrapper = sinon.stub();
+
+      var cb = sinon.spy();
+      var err = new Error();
+
+      mockBridge.expects('getDebugUrl').returns(debugUrl).once();
+      bridge.browserWrapper.withArgs(expectedCmd, aFunction)
+                           .callsArgWith(1, err);
+
+      bridge.runBrowser(browserCmd, 9000, cb);
+
+      cb.lastCall.args[0].should.equal(err);
+      mockBridge.verify();
+    });
+
+    it('should callback with no args if browserWrapper succeeds', function () {
+      bridge.browserWrapper = sinon.stub();
+
+      var cb = sinon.spy();
+
+      mockBridge.expects('getDebugUrl').returns(debugUrl).once();
+
+      bridge.browserWrapper.withArgs(expectedCmd, aFunction)
+                           .callsArgWith(1, null, '', '');
+
+      bridge.runBrowser(browserCmd, 9000, cb);
+
+      cb.calledOnce.should.be.true;
+      expect(cb.lastCall.args.length).to.equal(0);
+      mockBridge.verify();
+    });
+  });
 });
