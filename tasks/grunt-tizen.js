@@ -48,9 +48,7 @@ module.exports = function (grunt) {
   // configure objects from grunt tizen_configuration;
   // these are the points where tizen tasks touch the device
   // and the local filesystem
-  var configure = function () {
-    var config = grunt.config.get('tizen_configuration');
-
+  var configure = function (config) {
     bridge.tizenAppScriptPath = bridge.getDestination(
       TIZEN_APP_SCRIPT,
       config.tizenAppScriptDir || 'tmp'
@@ -225,20 +223,17 @@ module.exports = function (grunt) {
     });
   };
 
-  /**
-   * Task to push the tizen-app.sh script up to the device.
-   */
-  grunt.registerTask('tizen_prepare', 'Prepare for Tizen grunt tasks', function () {
-    var config = grunt.config.get('tizen_configuration');
+  // TASK DEFINITIONS
+  var tizenPrepareTask = function (config) {
     var remoteDir = config.tizenAppScriptDir;
 
     if (!remoteDir) {
-      grunt.fatal('tizen_prepare needs a tizenAppScriptDir (path ' +
-                  'to push the tizen-app.sh script to) in ' +
-                  'tizen_configuration');
+      throw 'tizen_prepare needs a tizenAppScriptDir (path ' +
+            'to push the tizen-app.sh script to) in ' +
+            'tizen_configuration';
     }
 
-    configure();
+    configure(config);
 
     push({
       localFiles: TIZEN_APP_SCRIPT,
@@ -246,7 +241,104 @@ module.exports = function (grunt) {
       chmod: '+x',
       overwrite: true
     }, this.async());
-  });
+  };
+
+  var tizenTask = function (config) {
+    configure(config);
+
+    var done = this.async();
+
+    // parameters for this particular invocation
+    var asRoot = this.data.asRoot || false;
+    var action = this.data.action;
+
+    if (!action) {
+      throw 'tizen task requires action argument';
+    }
+
+    // arguments we'll pass to the function denoted by action
+    var args = [this.data];
+
+    // determine which command function to execute
+    var cmd = null;
+
+    if (action === 'push') {
+      cmd = push;
+    }
+    else if (action === 'install') {
+      cmd = install;
+    }
+    else if (action === 'uninstall') {
+      cmd = uninstall;
+    }
+    else if (action === 'script') {
+      cmd = script;
+    }
+    // stop, start, debug; we need an extra action argument for this
+    else if (action === 'start' || action === 'stop' || action === 'debug') {
+      cmd = launch;
+      args.push(action);
+    }
+
+    // die if the action specified doesn't map to any of the known commands
+    if (!cmd) {
+      throw 'action "' + action + '" was not recognised as valid';
+    }
+
+    // if we're doing this as root, do "sdb root on" first, then
+    // execute the command, then "sdb root off"
+    if (asRoot) {
+      // this is the callback which will be applied after
+      // root on and the "real" command, to turn off root
+      var cb = function () {
+        bridge.root(false, function (err) {
+          done(err);
+        });
+      };
+
+      // push the "root off" callback onto the args passed to the
+      // "real" command
+      args.push(cb);
+
+      // turn root on, and if successful, apply the "real" command;
+      // that will in turn invoke the callback which turns root off
+      // again
+      bridge.root(true, function (err) {
+        if (err) {
+          done(err);
+        }
+        else {
+          cmd.apply(null, args);
+        }
+      });
+    }
+    // do as normal user, not root
+    else {
+      // the done() callback is the last argument
+      args.push(done);
+
+      // invoke our command with args
+      cmd.apply(null, args);
+    }
+  };
+
+  /**
+   * Task to push the tizen-app.sh script up to the device.
+   */
+  grunt.registerTask(
+    'tizen_prepare',
+    'Prepare for Tizen grunt tasks',
+    function () {
+      var config = grunt.config.get('tizen_configuration');
+
+      try {
+        tizenPrepareTask.call(this, config);
+      }
+      catch (e) {
+        grunt.fatal(e);
+      }
+    }
+  );
 
   /**
    * grunt tizen tasks
@@ -324,82 +416,18 @@ module.exports = function (grunt) {
    * (Tizen 2.1-compatible). Specify the version of sdb to use
    * with the sdbCmd key in tizen_configuration.
    */
-  grunt.registerMultiTask('tizen', 'manage Tizen applications', function () {
-    configure();
+  grunt.registerMultiTask(
+    'tizen',
+    'manage Tizen applications',
+    function () {
+      var config = grunt.config.get('tizen_configuration');
 
-    var done = this.async();
-
-    // parameters for this particular invocation
-    var asRoot = this.data.asRoot || false;
-    var action = this.data.action;
-
-    if (!action) {
-      grunt.fatal('tizen task requires action argument');
+      try {
+        tizenTask.call(this, config);
+      }
+      catch (e) {
+        grunt.fatal(e);
+      }
     }
-
-    // arguments we'll pass to the function denoted by action
-    var args = [this.data];
-
-    // determine which command function to execute
-    var cmd = null;
-
-    if (action === 'push') {
-      cmd = push;
-    }
-    else if (action === 'install') {
-      cmd = install;
-    }
-    else if (action === 'uninstall') {
-      cmd = uninstall;
-    }
-    else if (action === 'script') {
-      cmd = script;
-    }
-    // stop, start, debug; we need an extra action argument for this
-    else if (action === 'start' || action === 'stop' || action === 'debug') {
-      cmd = launch;
-      args.push(action);
-    }
-
-    // die if the action specified doesn't map to any of the known commands
-    if (!cmd) {
-      grunt.fatal('action "' + action + '" was not recognised as valid');
-    }
-
-    // if we're doing this as root, do "sdb root on" first, then
-    // execute the command, then "sdb root off"
-    if (asRoot) {
-      // this is the callback which will be applied after
-      // root on and the "real" command, to turn off root
-      var cb = function () {
-        bridge.root(false, function (err) {
-          done(err);
-        });
-      };
-
-      // push the "root off" callback onto the args passed to the
-      // "real" command
-      args.push(cb);
-
-      // turn root on, and if successful, apply the "real" command;
-      // that will in turn invoke the callback which turns root off
-      // again
-      bridge.root(true, function (err) {
-        if (err) {
-          done(err);
-        }
-        else {
-          cmd.apply(null, args);
-        }
-      });
-    }
-    // do as normal user, not root
-    else {
-      // the done() callback is the last argument
-      args.push(done);
-
-      // invoke our command with args
-      cmd.apply(null, args);
-    }
-  });
+  );
 };
