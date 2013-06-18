@@ -40,15 +40,22 @@ describe('Bridge', function () {
 
   var mockSdbWrapper;
   var mockBridge;
+  var mockLogger;
   beforeEach(function () {
     mockSdbWrapper = sinon.mock(sdbWrapper);
     mockBridge = sinon.mock(bridge);
+    mockLogger = sinon.mock(logger);
   });
 
   afterEach(function () {
     mockSdbWrapper.restore();
     mockBridge.restore();
+    mockLogger.restore();
   });
+
+  // useful matcher aliases
+  var aFunction = sinon.match.instanceOf(Function);
+  var anError = sinon.match.instanceOf(Error);
 
   it('should require logger property on creation', function () {
     var testConstruct = function () {
@@ -91,7 +98,7 @@ describe('Bridge', function () {
 
     it('should callback with true if file exists', function () {
       mockSdbWrapper.expects('shell')
-                    .withArgs('stat ' + remotePath, sinon.match.instanceOf(Function))
+                    .withArgs('stat ' + remotePath, aFunction)
                     .callsArgWith(1, null, '', '')
                     .once();
 
@@ -103,7 +110,7 @@ describe('Bridge', function () {
 
     it('should callback with false if file does not exist', function () {
       mockSdbWrapper.expects('shell')
-                    .withArgs('stat ' + remotePath, sinon.match.instanceOf(Function))
+                    .withArgs('stat ' + remotePath, aFunction)
                     .callsArgWith(1, null, 'No such file or directory', '')
                     .once();
 
@@ -115,7 +122,7 @@ describe('Bridge', function () {
 
     it('should callback with error if error occurs when invoking sdb', function () {
       mockSdbWrapper.expects('shell')
-                    .withArgs('stat ' + remotePath, sinon.match.instanceOf(Function))
+                    .withArgs('stat ' + remotePath, aFunction)
                     .callsArgWith(1, new Error())
                     .once();
 
@@ -135,7 +142,7 @@ describe('Bridge', function () {
       mockSdbWrapper.expects('shell')
                     .withArgs(
                       'chmod ' + chmodStr + ' ' + remotePath,
-                      sinon.match.instanceOf(Function)
+                      aFunction
                     )
                     .callsArgWith(1, null, '', '')
                     .once();
@@ -150,7 +157,7 @@ describe('Bridge', function () {
       mockSdbWrapper.expects('shell')
                     .withArgs(
                       'chmod ' + chmodStr + ' ' + remotePath,
-                      sinon.match.instanceOf(Function)
+                      aFunction
                     )
                     .callsArgWith(1, new Error())
                     .once();
@@ -188,7 +195,7 @@ describe('Bridge', function () {
       mockSdbWrapper.expects('shell')
                     .withArgs(
                       'ls -1 -c ' + filespec.pattern,
-                      sinon.match.instanceOf(Function)
+                      aFunction
                     )
                     .callsArgWith(1, new Error())
                     .once();
@@ -209,7 +216,7 @@ describe('Bridge', function () {
       mockSdbWrapper.expects('shell')
                     .withArgs(
                       'ls -1 -c ' + filespec.pattern,
-                      sinon.match.instanceOf(Function)
+                      aFunction
                     )
                     .callsArgWith(1, null, stdout, '')
                     .once();
@@ -230,7 +237,7 @@ describe('Bridge', function () {
       mockSdbWrapper.expects('shell')
                     .withArgs(
                       'ls -1 -c ' + filespec.pattern,
-                      sinon.match.instanceOf(Function)
+                      aFunction
                     )
                     .callsArgWith(1, null, stdout, '')
                     .once();
@@ -262,7 +269,7 @@ describe('Bridge', function () {
                     .withArgs(
                       localFile,
                       remotePath,
-                      sinon.match.instanceOf(Function)
+                      aFunction
                     )
                     .callsArgWith(2, null, '', '')
                     .once();
@@ -282,7 +289,7 @@ describe('Bridge', function () {
                     .withArgs(
                       localFile,
                       remotePath,
-                      sinon.match.instanceOf(Function)
+                      aFunction
                     )
                     .callsArgWith(2, err, '', '')
                     .once();
@@ -301,7 +308,7 @@ describe('Bridge', function () {
                     .withArgs(
                       localFile,
                       remotePath,
-                      sinon.match.instanceOf(Function)
+                      aFunction
                     )
                     .callsArgWith(2, null, '', 'failed to copy')
                     .once();
@@ -310,17 +317,17 @@ describe('Bridge', function () {
                     .withArgs(
                       localFile,
                       remotePath,
-                      sinon.match.instanceOf(Function)
+                      aFunction
                     )
                     .callsArgWith(2, null, '', 'cannot stat')
                     .once();
 
       bridge.pushRaw(localFile, remotePath, cb);
-      cb.calledWith(sinon.match.instanceOf(Error)).should.be.true;
+      cb.calledWith(anError).should.be.true;
       cb.reset();
 
       bridge.pushRaw(localFile, remotePath, cb);
-      cb.calledWith(sinon.match.instanceOf(Error)).should.be.true;
+      cb.calledWith(anError).should.be.true;
 
       mockSdbWrapper.verify();
     });
@@ -342,7 +349,7 @@ describe('Bridge', function () {
                 .returns(expectedRemotePath)
                 .once();
       mockBridge.expects('fileExists')
-                .withArgs(expectedRemotePath, sinon.match.instanceOf(Function))
+                .withArgs(expectedRemotePath, aFunction)
                 .callsArgWith(1, null, false)
                 .once();
       mockBridge.expects('pushRaw')
@@ -375,7 +382,7 @@ describe('Bridge', function () {
                 .returns(expectedRemotePath)
                 .once();
       mockBridge.expects('fileExists')
-                .withArgs(expectedRemotePath, sinon.match.instanceOf(Function))
+                .withArgs(expectedRemotePath, aFunction)
                 .callsArgWith(1, null, true)
                 .once();
 
@@ -412,7 +419,7 @@ describe('Bridge', function () {
 
       // cb invoked once with error
       cb.calledOnce.should.be.true;
-      cb.calledWith(sinon.match.instanceOf(Error)).should.be.true;
+      cb.calledWith(anError).should.be.true;
 
       mockBridge.verify();
     });
@@ -428,7 +435,7 @@ describe('Bridge', function () {
                 .returns(expectedRemotePath)
                 .once();
       mockBridge.expects('fileExists')
-                .withArgs(expectedRemotePath, sinon.match.instanceOf(Function))
+                .withArgs(expectedRemotePath, aFunction)
                 .callsArgWith(1, new Error())
                 .once();
 
@@ -436,7 +443,7 @@ describe('Bridge', function () {
 
       // cb invoked once with error
       cb.calledOnce.should.be.true;
-      cb.calledWith(sinon.match.instanceOf(Error)).should.be.true;
+      cb.calledWith(anError).should.be.true;
 
       mockBridge.verify();
     });
@@ -454,7 +461,7 @@ describe('Bridge', function () {
                 .withArgs(
                   localFile,
                   expectedRemotePath,
-                  sinon.match.instanceOf(Function)
+                  aFunction
                 )
                 .callsArg(2)
                 .once();
@@ -500,7 +507,7 @@ describe('Bridge', function () {
                   '/home/developer',
                   true,
                   '+x',
-                  sinon.match.instanceOf(Function)
+                  aFunction
                 )
                 .callsArg(4)
                 .once();
@@ -512,7 +519,7 @@ describe('Bridge', function () {
                   '/home/developer',
                   true,
                   '+x',
-                  sinon.match.instanceOf(Function)
+                  aFunction
                 )
                 .callsArgWith(4, err)
                 .once();
@@ -543,7 +550,7 @@ describe('Bridge', function () {
                   '/home/developer',
                   true,
                   '+x',
-                  sinon.match.instanceOf(Function)
+                  aFunction
                 )
                 .callsArg(4)
                 .once();
@@ -555,7 +562,7 @@ describe('Bridge', function () {
                   '/home/developer',
                   true,
                   '+x',
-                  sinon.match.instanceOf(Function)
+                  aFunction
                 )
                 .callsArgWith(4)
                 .once();
@@ -584,7 +591,7 @@ describe('Bridge', function () {
       mockSdbWrapper.expects('shell')
                     .withArgs(
                       cmd,
-                      sinon.match.instanceOf(Function)
+                      aFunction
                     )
                     .callsArgWith(1, err)
                     .once();
@@ -605,7 +612,7 @@ describe('Bridge', function () {
       mockSdbWrapper.expects('shell')
                     .withArgs(
                       cmd,
-                      sinon.match.instanceOf(Function)
+                      aFunction
                     )
                     .callsArgWith(1)
                     .once();
@@ -629,7 +636,7 @@ describe('Bridge', function () {
       mockSdbWrapper.expects('shell')
                     .withArgs(
                       expected,
-                      sinon.match.instanceOf(Function)
+                      aFunction
                     )
                     .callsArgWith(1)
                     .once();
@@ -655,7 +662,7 @@ describe('Bridge', function () {
 
       bridge.runTizenAppScript('start', [], cb);
 
-      cb.calledWith(sinon.match.instanceOf(Error)).should.be.true;
+      cb.calledWith(anError).should.be.true;
     });
 
     it('should run tizen-app.sh on device with specified command', function () {
@@ -675,7 +682,7 @@ describe('Bridge', function () {
       mockSdbWrapper.expects('shell')
                     .withArgs(
                       '/home/developer/tizen-app.sh start id1 uri2',
-                      sinon.match.instanceOf(Function)
+                      aFunction
                     )
                     .callsArgWith(1, err, stdout, stderr)
                     .once();
@@ -690,7 +697,7 @@ describe('Bridge', function () {
       mockSdbWrapper.expects('shell')
                     .withArgs(
                       '/home/developer/tizen-app.sh start',
-                      sinon.match.instanceOf(Function)
+                      aFunction
                     )
                     .callsArgWith(1, err, stdout, stderr)
                     .once();
@@ -707,7 +714,7 @@ describe('Bridge', function () {
       mockSdbWrapper.expects('shell')
                     .withArgs(
                       '/home/developer/tizen-app.sh start',
-                      sinon.match.instanceOf(Function)
+                      aFunction
                     )
                     .callsArgWith(1, err, stdout, stderr)
                     .once();
@@ -740,7 +747,7 @@ describe('Bridge', function () {
       mockSdbWrapper.expects('shell')
                     .withArgs(
                       '/home/developer/tizen-app.sh start id1 uri2',
-                      sinon.match.instanceOf(Function)
+                      aFunction
                     )
                     .callsArgWith(1, err, stdout, stderr)
                     .once();
@@ -771,7 +778,7 @@ describe('Bridge', function () {
 
       bridge.installOne(remoteFile, cb);
 
-      cb.calledWith(sinon.match.instanceOf(Error)).should.be.true;
+      cb.calledWith(anError).should.be.true;
       cb.reset();
 
       // case where wrt-installer fails but returns valid exit code
@@ -782,7 +789,7 @@ describe('Bridge', function () {
 
       bridge.installOne(remoteFile, cb);
 
-      cb.calledWith(sinon.match.instanceOf(Error)).should.be.true;
+      cb.calledWith(anError).should.be.true;
 
       mockBridge.verify();
     });
@@ -815,7 +822,7 @@ describe('Bridge', function () {
       var err = new Error();
 
       mockBridge.expects('listRemoteFiles')
-                .withArgs(remoteFilesSpec, sinon.match.instanceOf(Function))
+                .withArgs(remoteFilesSpec, aFunction)
                 .callsArgWith(1, err)
                 .once();
 
@@ -831,17 +838,17 @@ describe('Bridge', function () {
       var err = new Error();
 
       mockBridge.expects('listRemoteFiles')
-                .withArgs(remoteFilesSpec, sinon.match.instanceOf(Function))
+                .withArgs(remoteFilesSpec, aFunction)
                 .callsArgWith(1, null, remoteFiles)
                 .once();
 
       mockBridge.expects('installOne')
-                .withArgs(remoteFileNewest, sinon.match.instanceOf(Function))
+                .withArgs(remoteFileNewest, aFunction)
                 .callsArg(1)
                 .once();
 
       mockBridge.expects('installOne')
-                .withArgs(remoteFileOldest, sinon.match.instanceOf(Function))
+                .withArgs(remoteFileOldest, aFunction)
                 .callsArgWith(1, err)
                 .once();
 
@@ -853,10 +860,9 @@ describe('Bridge', function () {
 
     it('should display warning message if no files match', function () {
       var cb = sinon.spy();
-      var mockLogger = sinon.mock(logger)
 
       mockBridge.expects('listRemoteFiles')
-                .withArgs(remoteFilesSpec, sinon.match.instanceOf(Function))
+                .withArgs(remoteFilesSpec, aFunction)
                 .callsArgWith(1, null, [])
                 .once();
 
@@ -874,17 +880,17 @@ describe('Bridge', function () {
       var cb = sinon.spy();
 
       mockBridge.expects('listRemoteFiles')
-                .withArgs(remoteFilesSpec, sinon.match.instanceOf(Function))
+                .withArgs(remoteFilesSpec, aFunction)
                 .callsArgWith(1, null, remoteFiles)
                 .once();
 
       mockBridge.expects('installOne')
-                .withArgs(remoteFileNewest, sinon.match.instanceOf(Function))
+                .withArgs(remoteFileNewest, aFunction)
                 .callsArg(1)
                 .once();
 
       mockBridge.expects('installOne')
-                .withArgs(remoteFileOldest, sinon.match.instanceOf(Function))
+                .withArgs(remoteFileOldest, aFunction)
                 .callsArg(1)
                 .once();
 
@@ -898,7 +904,6 @@ describe('Bridge', function () {
 
   describe('uninstall()', function () {
     var appId = 'app1';
-    var mockLogger = sinon.mock(logger);
 
     it('should callback with error if tizen-app.sh fails ' +
        'and stopOnFailure is true', function () {
@@ -909,33 +914,33 @@ describe('Bridge', function () {
       var err = new Error();
 
       mockBridge.expects('runTizenAppScript')
-                .withArgs('uninstall', [appId], sinon.match.instanceOf(Function))
+                .withArgs('uninstall', [appId], aFunction)
                 .callsArgWith(2, err)
                 .once();
 
       bridge.uninstall(appId, stopOnFailure, cb);
 
-      cb.calledWith(sinon.match.instanceOf(Error)).should.be.true;
+      cb.calledWith(anError).should.be.true;
 
       // tizen-app.sh stdout says "not installed"
       mockBridge.expects('runTizenAppScript')
-                .withArgs('uninstall', [appId], sinon.match.instanceOf(Function))
+                .withArgs('uninstall', [appId], aFunction)
                 .callsArgWith(2, null, 'not installed', '')
                 .once();
 
       bridge.uninstall(appId, stopOnFailure, cb);
 
-      cb.calledWith(sinon.match.instanceOf(Error)).should.be.true;
+      cb.calledWith(anError).should.be.true;
 
       // tizen-app.sh stdout says "failed"
       mockBridge.expects('runTizenAppScript')
-                .withArgs('uninstall', [appId], sinon.match.instanceOf(Function))
+                .withArgs('uninstall', [appId], aFunction)
                 .callsArgWith(2, null, 'failed', '')
                 .once();
 
       bridge.uninstall(appId, stopOnFailure, cb);
 
-      cb.calledWith(sinon.match.instanceOf(Error)).should.be.true;
+      cb.calledWith(anError).should.be.true;
       mockBridge.verify();
     });
 
@@ -945,7 +950,7 @@ describe('Bridge', function () {
       var cb = sinon.spy();
 
       mockBridge.expects('runTizenAppScript')
-                .withArgs('uninstall', [appId], sinon.match.instanceOf(Function))
+                .withArgs('uninstall', [appId], aFunction)
                 .callsArgWith(2, new Error())
                 .once();
 
@@ -966,7 +971,7 @@ describe('Bridge', function () {
       var cb = sinon.spy();
 
       mockBridge.expects('runTizenAppScript')
-                .withArgs('uninstall', [appId], sinon.match.instanceOf(Function))
+                .withArgs('uninstall', [appId], aFunction)
                 .callsArgWith(2, null, '', '')
                 .once();
 
@@ -981,5 +986,112 @@ describe('Bridge', function () {
       mockBridge.verify();
       mockLogger.verify();
     });
+  });
+
+  describe('launch()', function () {
+    var subcommand = 'start';
+    var appUri = 'http://bogus.url/app1';
+
+    it('should callback with an error if tizen-app.sh fails ' +
+       'and stopOnFailure is true', function () {
+      var stopOnFailure = true;
+      var cb = sinon.spy();
+
+      // tizen-app.sh has a bad exit code
+      mockBridge.expects('runTizenAppScript')
+                .withArgs(subcommand, [appUri], aFunction)
+                .callsArgWith(2, new Error(), '', '')
+                .once();
+
+      bridge.launch(subcommand, appUri, stopOnFailure, cb);
+
+      cb.calledWith(anError).should.be.true;
+      cb.reset();
+
+      // tizen-app.sh stdout says "does not exist"
+      mockBridge.expects('runTizenAppScript')
+                .withArgs(subcommand, [appUri], aFunction)
+                .callsArgWith(2, null, 'does not exist', '')
+                .once();
+
+      bridge.launch(subcommand, appUri, stopOnFailure, cb);
+
+      cb.calledWith(anError).should.be.true;
+      cb.reset();
+
+      // tizen-app.sh stdout says "running"
+      mockBridge.expects('runTizenAppScript')
+                .withArgs(subcommand, [appUri], aFunction)
+                .callsArgWith(2, null, 'running', '')
+                .once();
+
+      bridge.launch(subcommand, appUri, stopOnFailure, cb);
+
+      cb.calledWith(anError).should.be.true;
+      cb.reset();
+
+      // tizen-app.sh stdout says "failed"
+      mockBridge.expects('runTizenAppScript')
+                .withArgs(subcommand, [appUri], aFunction)
+                .callsArgWith(2, null, 'failed', '')
+                .once();
+
+      bridge.launch(subcommand, appUri, stopOnFailure, cb);
+
+      cb.calledWith(anError).should.be.true;
+      cb.reset();
+
+      mockBridge.verify();
+      mockLogger.verify();
+    });
+
+    it('should callback with no args and show warning if tizen-app.sh fails ' +
+       'and stopOnFailure is false', function () {
+      var stopOnFailure = false;
+      var cb = sinon.spy();
+
+      // tizen-app.sh has a bad exit code
+      mockBridge.expects('runTizenAppScript')
+                .withArgs(subcommand, [appUri], aFunction)
+                .callsArgWith(2, new Error(), '', '')
+                .once();
+
+      // to differentiate between fail with warning and success
+      mockLogger.expects('warn').once();
+
+      bridge.launch(subcommand, appUri, stopOnFailure, cb);
+
+      cb.calledOnce.should.be.true;
+      expect(cb.lastCall.args.length).to.equal(0);
+      mockBridge.verify();
+      mockLogger.verify();
+    });
+
+    it('should callback with stdout if tizen-app.sh succeeds', function () {
+      var stopOnFailure = true;
+      var cb = sinon.spy();
+
+      var stdout = 'PORT 24040';
+      var stderr = '';
+
+      // tizen-app.sh has a bad exit code
+      mockBridge.expects('runTizenAppScript')
+                .withArgs(subcommand, [appUri], aFunction)
+                .callsArgWith(2, null, stdout, stderr)
+                .once();
+
+      // to differentiate between fail with warning and success
+      mockLogger.expects('ok').once();
+
+      bridge.launch(subcommand, appUri, stopOnFailure, cb);
+
+      var cbArgs = cb.lastCall.args;
+
+      expect(cbArgs[0]).to.be.null;
+      cbArgs[1].should.equal(stdout);
+      mockBridge.verify();
+      mockLogger.verify();
+    });
+
   });
 });
