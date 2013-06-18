@@ -1092,6 +1092,12 @@ describe('Bridge', function () {
       mockBridge.verify();
       mockLogger.verify();
     });
+  });
 
+  describe('getDebugUrl()', function () {
+    it('should return the debug URL for the app', function () {
+      var expected = 'http://localhost:9000/inspector.html?page=1';
+      bridge.getDebugUrl(9000).should.eql(expected);
+    });
   });
 });
