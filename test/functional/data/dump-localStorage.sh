@@ -16,11 +16,11 @@ echo "*******************************************************"
 echo
 
 if [ $RESULT -eq "0" ] ; then
-  echo "DUMP OF LOCALSTORAGE FOR APP $2 AND KEY $KEY"
+  echo "DUMP OF LOCALSTORAGE FOR APP $APP_ID AND KEY $KEY"
   echo
   echo $DATA
 else
-  echo -e "\033[31mERROR DUMPING LOCAL STORAGE FOR APP $2:\033[0m"
+  echo -e "\033[31mERROR DUMPING LOCAL STORAGE FOR APP $APP_ID:\033[0m"
   /bin/cat /tmp/dump-output.txt
 fi
 

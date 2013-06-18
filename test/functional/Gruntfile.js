@@ -80,12 +80,19 @@ module.exports = function (grunt) {
 
   grunt.registerTask('default', [
     'tizen_prepare',
-    'tizen:pushDumpScript',
     'tizen:stop',
     'tizen:pushPackage',
     'tizen:uninstall',
     'tizen:install',
-    'tizen:debug',
-    'tizen:runDumpScript'
+    'tizen:debug'
   ]);
+
+  grunt.registerTask(
+    'dump',
+    'Dump contents of local storage for the app',
+    [
+      'tizen:pushDumpScript',
+      'tizen:runDumpScript'
+    ]
+  );
 };
