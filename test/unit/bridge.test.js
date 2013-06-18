@@ -1154,4 +1154,52 @@ describe('Bridge', function () {
       mockBridge.verify();
     });
   });
+
+  describe('portForward()', function () {
+    var localPort = 8888;
+    var remotePort = 9000;
+    var debugUrl = 'http://localhost:8888/';
+
+    it('should callback with error if sdb forward fails', function () {
+      var cb = sinon.spy();
+      var err = new Error();
+
+      mockSdbWrapper.expects('forward')
+                    .withArgs(localPort, remotePort, aFunction)
+                    .callsArgWith(2, err)
+                    .once();
+
+      bridge.portForward(localPort, remotePort, cb);
+
+      cb.calledWith(err).should.be.true;
+      mockSdbWrapper.verify();
+    });
+
+    it('should callback with no args if sdb forward succeeds', function () {
+      var cb = sinon.spy();
+      var err = new Error();
+
+      mockBridge.expects('getDebugUrl')
+                .withArgs(localPort)
+                .returns(debugUrl)
+                .once();
+
+      mockSdbWrapper.expects('forward')
+                    .withArgs(localPort, remotePort, aFunction)
+                    .callsArgWith(2, null, '', '')
+                    .once();
+
+      mockLogger.expects('ok')
+                .withArgs('app is ready for debugging at \n' + debugUrl)
+                .once;
+
+      bridge.portForward(localPort, remotePort, cb);
+
+      cb.calledOnce.should.be.true;
+      expect(cb.lastCall.args.length).to.equal(0);
+      mockBridge.verify();
+      mockSdbWrapper.verify();
+      mockLogger.verify();
+    });
+  });
 });
