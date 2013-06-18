@@ -641,4 +641,120 @@ describe('Bridge', function () {
       mockSdbWrapper.verify();
     });
   });
+
+  describe('runTizenAppScript()', function () {
+    it('should callback with error if tizenAppScriptPath ' +
+       'property not set', function () {
+      var bridge = Bridge.init({
+        logger: logger,
+        fileLister: fileLister,
+        sdbWrapper: sdbWrapper
+      });
+
+      var cb = sinon.spy();
+
+      bridge.runTizenAppScript('start', [], cb);
+
+      cb.calledWith(sinon.match.instanceOf(Error)).should.be.true;
+    });
+
+    it('should run tizen-app.sh on device with specified command', function () {
+      var bridge = Bridge.init({
+        logger: logger,
+        fileLister: fileLister,
+        sdbWrapper: sdbWrapper,
+        tizenAppScriptPath: '/home/developer/tizen-app.sh'
+      });
+
+      var cb = sinon.spy();
+
+      var err = null;
+      var stdout = '';
+      var stderr = ''
+
+      mockSdbWrapper.expects('shell')
+                    .withArgs(
+                      '/home/developer/tizen-app.sh start id1 uri2',
+                      sinon.match.instanceOf(Function)
+                    )
+                    .callsArgWith(1, err, stdout, stderr)
+                    .once();
+
+      bridge.runTizenAppScript('start', ['id1', 'uri2'], cb);
+
+      cb.calledOnce.should.be.true;
+      cb.calledWith(err, stdout, stdout).should.be.true;
+      cb.reset();
+
+      // test that no args also works
+      mockSdbWrapper.expects('shell')
+                    .withArgs(
+                      '/home/developer/tizen-app.sh start',
+                      sinon.match.instanceOf(Function)
+                    )
+                    .callsArgWith(1, err, stdout, stderr)
+                    .once();
+
+      bridge.runTizenAppScript('start', [], cb);
+
+      cb.calledOnce.should.be.true;
+      cb.calledWith(err, stdout, stdout).should.be.true;
+      cb.reset();
+
+      // test that errors are propagated correctly
+      err = new Error();
+
+      mockSdbWrapper.expects('shell')
+                    .withArgs(
+                      '/home/developer/tizen-app.sh start',
+                      sinon.match.instanceOf(Function)
+                    )
+                    .callsArgWith(1, err, stdout, stderr)
+                    .once();
+
+      bridge.runTizenAppScript('start', [], cb);
+
+      cb.calledOnce.should.be.true;
+      cb.calledWith(err, stdout, stdout).should.be.true;
+      cb.reset();
+
+      mockSdbWrapper.verify();
+    });
+
+    it('should callback with error if missing file/dir', function () {
+      var bridge = Bridge.init({
+        logger: logger,
+        fileLister: fileLister,
+        sdbWrapper: sdbWrapper,
+        tizenAppScriptPath: '/home/developer/tizen-app.sh'
+      });
+
+      var cb = sinon.spy();
+
+      // no error but stdout reports missing directory; this should be
+      // converted to an error by the bridge
+      var err = null;
+      var stdout = 'No such file or directory';
+      var stderr = ''
+
+      mockSdbWrapper.expects('shell')
+                    .withArgs(
+                      '/home/developer/tizen-app.sh start id1 uri2',
+                      sinon.match.instanceOf(Function)
+                    )
+                    .callsArgWith(1, err, stdout, stderr)
+                    .once();
+
+      bridge.runTizenAppScript('start', ['id1', 'uri2'], cb);
+
+      cb.calledOnce.should.be.true;
+      var cbArgs = cb.lastCall.args;
+
+      cbArgs[0].should.be.instanceof(Error);
+      cbArgs[1].should.equal(stdout);
+      cbArgs[2].should.equal(stderr);
+
+      mockSdbWrapper.verify();
+    });
+  });
 });
