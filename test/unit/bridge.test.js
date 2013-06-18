@@ -895,4 +895,91 @@ describe('Bridge', function () {
       mockBridge.verify();
     });
   });
+
+  describe('uninstall()', function () {
+    var appId = 'app1';
+    var mockLogger = sinon.mock(logger);
+
+    it('should callback with error if tizen-app.sh fails ' +
+       'and stopOnFailure is true', function () {
+      var stopOnFailure = true;
+      var cb = sinon.spy();
+
+      // tizen-app.sh throws an error
+      var err = new Error();
+
+      mockBridge.expects('runTizenAppScript')
+                .withArgs('uninstall', [appId], sinon.match.instanceOf(Function))
+                .callsArgWith(2, err)
+                .once();
+
+      bridge.uninstall(appId, stopOnFailure, cb);
+
+      cb.calledWith(sinon.match.instanceOf(Error)).should.be.true;
+
+      // tizen-app.sh stdout says "not installed"
+      mockBridge.expects('runTizenAppScript')
+                .withArgs('uninstall', [appId], sinon.match.instanceOf(Function))
+                .callsArgWith(2, null, 'not installed', '')
+                .once();
+
+      bridge.uninstall(appId, stopOnFailure, cb);
+
+      cb.calledWith(sinon.match.instanceOf(Error)).should.be.true;
+
+      // tizen-app.sh stdout says "failed"
+      mockBridge.expects('runTizenAppScript')
+                .withArgs('uninstall', [appId], sinon.match.instanceOf(Function))
+                .callsArgWith(2, null, 'failed', '')
+                .once();
+
+      bridge.uninstall(appId, stopOnFailure, cb);
+
+      cb.calledWith(sinon.match.instanceOf(Error)).should.be.true;
+      mockBridge.verify();
+    });
+
+    it('should show warning and callback if tizen-app.sh fails ' +
+       'but stopOnFailure is false', function () {
+      var stopOnFailure = false;
+      var cb = sinon.spy();
+
+      mockBridge.expects('runTizenAppScript')
+                .withArgs('uninstall', [appId], sinon.match.instanceOf(Function))
+                .callsArgWith(2, new Error())
+                .once();
+
+      mockLogger.expects('warn')
+                .withArgs('could not uninstall package; continuing anyway')
+                .once();
+
+      bridge.uninstall(appId, stopOnFailure, cb);
+
+      cb.calledOnce.should.be.true;
+      expect(cb.lastCall.args.length).to.equal(0);
+      mockBridge.verify();
+      mockLogger.verify();
+    });
+
+    it('should callback with no args if tizen-app.sh succeeds', function () {
+      var stopOnFailure = true;
+      var cb = sinon.spy();
+
+      mockBridge.expects('runTizenAppScript')
+                .withArgs('uninstall', [appId], sinon.match.instanceOf(Function))
+                .callsArgWith(2, null, '', '')
+                .once();
+
+      // this is to differentiate between success and the "fails
+      // but stopOnFailure set to false, so continues anyway" condition
+      mockLogger.expects('ok').once();
+
+      bridge.uninstall(appId, stopOnFailure, cb);
+
+      cb.calledOnce.should.be.true;
+      expect(cb.lastCall.args.length).to.equal(0);
+      mockBridge.verify();
+      mockLogger.verify();
+    });
+  });
 });
