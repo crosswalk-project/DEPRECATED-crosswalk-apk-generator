@@ -1202,4 +1202,61 @@ describe('Bridge', function () {
       mockLogger.verify();
     });
   });
+
+  describe('root()', function () {
+    it('should callback with an error if sdb root fails', function () {
+      var cb = sinon.spy();
+      var err = new Error();
+
+      mockSdbWrapper.expects('root')
+                    .withArgs(true, aFunction)
+                    .callsArgWith(1, err)
+                    .once();
+
+      bridge.root(true, cb);
+
+      cb.calledWith(err).should.be.true;
+      mockSdbWrapper.verify();
+    });
+
+    it('should log message that root is off if root turned off', function () {
+      var cb = sinon.spy();
+
+      mockSdbWrapper.expects('root')
+                    .withArgs(false, aFunction)
+                    .callsArgWith(1, null, '', '')
+                    .once();
+
+      mockLogger.expects('ok')
+                .withArgs(sinon.match(/no longer running as root/))
+                .once();
+
+      bridge.root(false, cb);
+
+      cb.calledOnce.should.be.true;
+      expect(cb.lastCall.args.length).to.equal(0);
+      mockSdbWrapper.verify();
+      mockLogger.verify();
+    });
+
+    it('should log message that root is on if root turned on', function () {
+      var cb = sinon.spy();
+
+      mockSdbWrapper.expects('root')
+                    .withArgs(true, aFunction)
+                    .callsArgWith(1, null, '', '')
+                    .once();
+
+      mockLogger.expects('warn')
+                .withArgs(sinon.match(/running as root/))
+                .once();
+
+      bridge.root(true, cb);
+
+      cb.calledOnce.should.be.true;
+      expect(cb.lastCall.args.length).to.equal(0);
+      mockSdbWrapper.verify();
+      mockLogger.verify();
+    });
+  });
 });
