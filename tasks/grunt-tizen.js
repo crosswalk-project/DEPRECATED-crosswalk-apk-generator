@@ -372,7 +372,7 @@ module.exports = function (grunt) {
       // this is the callback which will be applied after
       // root on and the "real" command, to turn off root
       var cb = function () {
-        bridge.rootOff(function (err) {
+        bridge.root(false, function (err) {
           done(err);
         });
       };
@@ -384,7 +384,7 @@ module.exports = function (grunt) {
       // turn root on, and if successful, apply the "real" command;
       // that will in turn invoke the callback which turns root off
       // again
-      bridge.rootOn(function (err) {
+      bridge.root(true, function (err) {
         if (err) {
           done(err);
         }
