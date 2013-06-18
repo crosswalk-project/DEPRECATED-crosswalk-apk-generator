@@ -470,4 +470,106 @@ describe('Bridge', function () {
       mockBridge.verify();
     });
   });
+
+  describe('push()', function () {
+    it('should callback with error if local files can\'t be listed', function () {
+      var stub = sinon.stub(fileLister, 'list');
+      var err = new Error();
+      stub.callsArgWith(1, err);
+
+      var cb = sinon.spy();
+
+      bridge.push('build/*.wgt', '/home/developer', true, '+x', cb);
+
+      cb.calledWith(err).should.be.true;
+      stub.restore();
+    });
+
+    it('should callback with an error if any push fails', function () {
+      // stub out the file lister to return two file names
+      var stub = sinon.stub(fileLister, 'list');
+      var localFiles = ['build/one.wgt', 'build/two.wgt'];
+      stub.callsArgWith(1, null, localFiles);
+
+      // mock out the pushes so that the second push fails
+      var err = new Error();
+
+      mockBridge.expects('pushOne')
+                .withArgs(
+                  'build/one.wgt',
+                  '/home/developer',
+                  true,
+                  '+x',
+                  sinon.match.instanceOf(Function)
+                )
+                .callsArg(4)
+                .once();
+
+      // second push fails
+      mockBridge.expects('pushOne')
+                .withArgs(
+                  'build/two.wgt',
+                  '/home/developer',
+                  true,
+                  '+x',
+                  sinon.match.instanceOf(Function)
+                )
+                .callsArgWith(4, err)
+                .once();
+
+      // call under test
+      var cb = sinon.spy();
+
+      bridge.push('build/*.wgt', '/home/developer', true, '+x', cb);
+
+      // check expectations
+      cb.calledWith(err).should.be.true;
+      mockBridge.verify();
+      stub.restore();
+    });
+
+    it('should callback with no arguments if all local files are pushed', function () {
+      // stub out the file lister to return two file names
+      var stub = sinon.stub(fileLister, 'list');
+      var localFiles = ['build/one.wgt', 'build/two.wgt'];
+      stub.callsArgWith(1, null, localFiles);
+
+      // mock out the pushes so that the second push fails
+      var err = new Error();
+
+      mockBridge.expects('pushOne')
+                .withArgs(
+                  'build/one.wgt',
+                  '/home/developer',
+                  true,
+                  '+x',
+                  sinon.match.instanceOf(Function)
+                )
+                .callsArg(4)
+                .once();
+
+      // second push fails
+      mockBridge.expects('pushOne')
+                .withArgs(
+                  'build/two.wgt',
+                  '/home/developer',
+                  true,
+                  '+x',
+                  sinon.match.instanceOf(Function)
+                )
+                .callsArgWith(4)
+                .once();
+
+      // call under test
+      var cb = sinon.spy();
+
+      bridge.push('build/*.wgt', '/home/developer', true, '+x', cb);
+
+      // check expectations
+      cb.calledOnce.should.be.true;
+      expect(cb.lastCall.args.length).to.equal(0);
+      mockBridge.verify();
+      stub.restore();
+    });
+  });
 });
