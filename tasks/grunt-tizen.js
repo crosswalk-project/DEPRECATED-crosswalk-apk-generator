@@ -21,7 +21,7 @@ module.exports = function (grunt) {
   var browserWrapper = require('../lib/browser-wrapper');
 
   var sdbWrapper = require('../lib/sdb-wrapper').create({
-    // set at runtime from tizen_configuration
+    // set at runtime from tizen_configuration; sdb command to use
     sdbCmd: null
   });
 
@@ -31,7 +31,8 @@ module.exports = function (grunt) {
     fileLister: fileLister,
     browserWrapper: browserWrapper,
 
-    // set at runtime from tizen_configuration
+    // set at runtime from tizen_configuration; location of the
+    // tizen-app.sh script on the device
     tizenAppScriptPath: null
   });
 
@@ -40,12 +41,12 @@ module.exports = function (grunt) {
   var tizenConfig = require('../lib/tizen-config').create({
     parser: parser,
 
-    // set at runtime from tizen_configuration
+    // set at runtime from tizen_configuration; location of config.xml
     configFile: null
   });
 
   // configure objects from grunt tizen_configuration;
-  // these are the points where the objects touch the device
+  // these are the points where tizen tasks touch the device
   // and the local filesystem
   var configure = function () {
     var config = grunt.config.get('tizen_configuration');
@@ -81,10 +82,10 @@ module.exports = function (grunt) {
    */
   var push = function (config, done) {
     if (!config.localFiles) {
-      grunt.fatal('tizen:push needs localFiles property');
+      grunt.fatal('tizen "push" action needs a localFiles property');
     }
     if (!config.remoteDir) {
-      grunt.fatal('tizen:push needs remoteDir property');
+      grunt.fatal('tizen "push" action needs a remoteDir property');
     }
 
     // get variables from config and set defaults
@@ -109,7 +110,7 @@ module.exports = function (grunt) {
    */
   var install = function (config, done) {
     if (!config.remoteFiles) {
-      grunt.fatal('tizen:install needs remoteFiles property');
+      grunt.fatal('tizen "install" action needs a remoteFiles property');
     }
 
     bridge.install(config.remoteFiles, done);
@@ -147,7 +148,7 @@ module.exports = function (grunt) {
    */
   var script = function (config, done) {
     if (!config.remoteScript) {
-      grunt.fail('script task requires a remoteScript property');
+      grunt.fail('tizen "script" action needs a remoteScript property');
     }
 
     var args = config.args || [];
@@ -225,7 +226,7 @@ module.exports = function (grunt) {
   };
 
   /**
-   * Push the tizen-app.sh script up to the device.
+   * Task to push the tizen-app.sh script up to the device.
    */
   grunt.registerTask('tizen_prepare', 'Prepare for Tizen grunt tasks', function () {
     var config = grunt.config.get('tizen_configuration');
@@ -326,7 +327,9 @@ module.exports = function (grunt) {
   grunt.registerMultiTask('tizen', 'manage Tizen applications', function () {
     configure();
 
-    // for this particular invocation
+    var done = this.async();
+
+    // parameters for this particular invocation
     var asRoot = this.data.asRoot || false;
     var action = this.data.action;
 
@@ -334,12 +337,10 @@ module.exports = function (grunt) {
       grunt.fatal('tizen task requires action argument');
     }
 
-    var done = this.async();
-
-    // arguments we'll pass to the cmd function denoted by action
+    // arguments we'll pass to the function denoted by action
     var args = [this.data];
 
-    // determine which command to execute
+    // determine which command function to execute
     var cmd = null;
 
     if (action === 'push') {
@@ -355,22 +356,34 @@ module.exports = function (grunt) {
       cmd = script;
     }
     // stop, start, debug; we need an extra action argument for this
-    else {
+    else if (action === 'start' || action === 'stop' || action === 'debug') {
       cmd = launch;
       args.push(action);
+    }
+
+    // die if the action specified doesn't map to any of the known commands
+    if (!cmd) {
+      grunt.fatal('action "' + action + '" was not recognised as valid');
     }
 
     // if we're doing this as root, do "sdb root on" first, then
     // execute the command, then "sdb root off"
     if (asRoot) {
+      // this is the callback which will be applied after
+      // root on and the "real" command, to turn off root
       var cb = function () {
         bridge.rootOff(function (err) {
           done(err);
         });
       };
 
+      // push the "root off" callback onto the args passed to the
+      // "real" command
       args.push(cb);
 
+      // turn root on, and if successful, apply the "real" command;
+      // that will in turn invoke the callback which turns root off
+      // again
       bridge.rootOn(function (err) {
         if (err) {
           done(err);
@@ -380,6 +393,7 @@ module.exports = function (grunt) {
         }
       });
     }
+    // do as normal user, not root
     else {
       // the done() callback is the last argument
       args.push(done);
