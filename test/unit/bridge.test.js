@@ -757,4 +757,142 @@ describe('Bridge', function () {
       mockSdbWrapper.verify();
     });
   });
+
+  describe('installOne()', function () {
+    var remoteFile = '/home/developer/app.wgt';
+
+    it('should callback with error if wrt-installer fails', function () {
+      var cb = sinon.spy();
+
+      mockBridge.expects('runTizenAppScript')
+                .withArgs('install', [remoteFile])
+                .callsArgWith(2, new Error())
+                .once();
+
+      bridge.installOne(remoteFile, cb);
+
+      cb.calledWith(sinon.match.instanceOf(Error)).should.be.true;
+      cb.reset();
+
+      // case where wrt-installer fails but returns valid exit code
+      mockBridge.expects('runTizenAppScript')
+                .withArgs('install', [remoteFile])
+                .callsArgWith(2, null, 'key[end] val[fail]', '')
+                .once();
+
+      bridge.installOne(remoteFile, cb);
+
+      cb.calledWith(sinon.match.instanceOf(Error)).should.be.true;
+
+      mockBridge.verify();
+    });
+
+    it('should callback with no arguments if wrt-installer succeeds', function () {
+      var cb = sinon.spy();
+
+      mockBridge.expects('runTizenAppScript')
+                .withArgs('install', [remoteFile])
+                .callsArgWith(2, null, '', '')
+                .once();
+
+      bridge.installOne(remoteFile, cb);
+
+      cb.calledOnce.should.be.true;
+      expect(cb.lastCall.args.length).to.equal(0);
+      mockBridge.verify();
+    });
+  });
+
+  describe('install()', function () {
+    var remoteFilesSpec = {pattern: '/home/developer/*.wgt', filter: 'latest'};
+    var remoteFileNewest = '/home/developer/newest.wgt';
+    var remoteFileOldest = '/home/developer/oldest.wgt';
+    var remoteFiles = [remoteFileNewest, remoteFileOldest];
+
+    it('should callback with error if the remote file listing fails', function () {
+      var cb = sinon.spy();
+
+      var err = new Error();
+
+      mockBridge.expects('listRemoteFiles')
+                .withArgs(remoteFilesSpec, sinon.match.instanceOf(Function))
+                .callsArgWith(1, err)
+                .once();
+
+      bridge.install(remoteFilesSpec, cb);
+
+      cb.calledWith(err).should.be.true;
+      mockBridge.verify();
+    });
+
+    it('should callback with error if any single install fails', function () {
+      var cb = sinon.spy();
+
+      var err = new Error();
+
+      mockBridge.expects('listRemoteFiles')
+                .withArgs(remoteFilesSpec, sinon.match.instanceOf(Function))
+                .callsArgWith(1, null, remoteFiles)
+                .once();
+
+      mockBridge.expects('installOne')
+                .withArgs(remoteFileNewest, sinon.match.instanceOf(Function))
+                .callsArg(1)
+                .once();
+
+      mockBridge.expects('installOne')
+                .withArgs(remoteFileOldest, sinon.match.instanceOf(Function))
+                .callsArgWith(1, err)
+                .once();
+
+      bridge.install(remoteFilesSpec, cb);
+
+      cb.calledWith(err).should.be.true;
+      mockBridge.verify();
+    });
+
+    it('should display warning message if no files match', function () {
+      var cb = sinon.spy();
+      var mockLogger = sinon.mock(logger)
+
+      mockBridge.expects('listRemoteFiles')
+                .withArgs(remoteFilesSpec, sinon.match.instanceOf(Function))
+                .callsArgWith(1, null, [])
+                .once();
+
+      mockLogger.expects('warn').withArgs('no packages to install');
+
+      bridge.install(remoteFilesSpec, cb);
+
+      cb.calledOnce.should.be.true;
+      expect(cb.lastCall.args.length).to.equal(0);
+      mockBridge.verify();
+      mockLogger.verify();
+    });
+
+    it('should callback with no arguments if all installs succeed', function () {
+      var cb = sinon.spy();
+
+      mockBridge.expects('listRemoteFiles')
+                .withArgs(remoteFilesSpec, sinon.match.instanceOf(Function))
+                .callsArgWith(1, null, remoteFiles)
+                .once();
+
+      mockBridge.expects('installOne')
+                .withArgs(remoteFileNewest, sinon.match.instanceOf(Function))
+                .callsArg(1)
+                .once();
+
+      mockBridge.expects('installOne')
+                .withArgs(remoteFileOldest, sinon.match.instanceOf(Function))
+                .callsArg(1)
+                .once();
+
+      bridge.install(remoteFilesSpec, cb);
+
+      cb.calledOnce.should.be.true;
+      expect(cb.lastCall.args.length).to.equal(0);
+      mockBridge.verify();
+    });
+  });
 });
