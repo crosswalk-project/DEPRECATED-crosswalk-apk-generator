@@ -25,7 +25,8 @@ module.exports = function (grunt) {
           'require': false,
           'module': false,
           'process': false,
-          '__dirname': false
+          '__dirname': false,
+          'console': false
         },
 
         unused: true,
@@ -38,14 +39,25 @@ module.exports = function (grunt) {
     },
 
     mochaccino: {
+      // this provides coverage for both unit and integration tests
       cov: {
-        files: { src: 'test/unit/*.test.js' },
+        files: [
+          { src: 'test/unit/*.test.js' },
+          { src: 'test/integration/*.test.js' }
+        ],
         reporter: 'html-cov',
         reportDir: 'build',
         browserCmd: 'google-chrome'
       },
+
       unit: {
         files: { src: 'test/unit/*.test.js' },
+        reporter: 'dot'
+      },
+
+      // integration tests
+      int: {
+        files: { src: 'test/integration/*.test.js' },
         reporter: 'dot'
       }
     }
