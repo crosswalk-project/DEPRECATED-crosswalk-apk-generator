@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<widget xmlns="http://www.w3.org/ns/widgets" xmlns:tizen="http://tizen.org/ns/widgets" id="https://bogus.url/bogusappln" version="0.0.1" viewmodes="fullscreen">
+    <name>test</name>
+    <icon src="icon.png"/>
+    <tizen:application id="bogusappln" required_version="1.0"/>
+    <content src="index.html"/>
+</widget>
