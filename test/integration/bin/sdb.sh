@@ -1,14 +1,22 @@
 #!/usr/bin/env node
-var exitCodes = {};
+var behaviours = {
+  failPush: {
+    exitCodes: {push: 1}
+  },
+  failShell: {
+    exitCodes: {shell: 1}
+  }
+};
 
-var cliExitCodes = process.argv[2].split(',');
-var commandAndCode;
-for (var i = 0; i < cliExitCodes.length; i += 1) {
-  commandAndCode = cliExitCodes[i].split(':');
-  exitCodes[commandAndCode[0]] = parseInt(commandAndCode[1]);
+var requestedBehaviour = behaviours[process.argv[2]];
+
+console.log(requestedBehaviour);
+
+var exitCode = 0;
+if (requestedBehaviour &&
+    requestedBehaviour.exitCodes &&
+    requestedBehaviour.exitCodes[command]) {
+  exitCode = requestedBehaviour.exitCodes[command];
 }
-
-var command = process.argv[3];
-var exitCode = exitCodes[command];
 
 process.exit(exitCode);

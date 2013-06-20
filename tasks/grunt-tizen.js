@@ -10,7 +10,8 @@
 /**
  * grunt-tizen: Tizen-related tasks for grunt
  */
-var tasks = require('../lib/tasks');
+var factory = require('../lib/factory');
+var taskMaker = require('../lib/tizen-tasks');
 
 module.exports = function (grunt) {
   'use strict';
@@ -26,10 +27,14 @@ module.exports = function (grunt) {
       var config = grunt.config.get('tizen_configuration');
       config.logger = grunt.log;
 
+      var bridge = factory.makeBridge(config);
+      var tizenConfig = factory.makeTizenConfig(config);
+      var tasks = taskMaker({bridge: bridge, tizenConfig: tizenConfig});
+
       var done = this.async();
 
       try {
-        tasks(config).tizenPrepareTask.call(this, done);
+        tasks.tizenPrepareTask.call(this, done);
       }
       catch (e) {
         grunt.fatal(e);
@@ -121,11 +126,15 @@ module.exports = function (grunt) {
       var config = grunt.config.get('tizen_configuration');
       config.logger = grunt.log;
 
+      var bridge = factory.makeBridge(config);
+      var tizenConfig = factory.makeTizenConfig(config);
+      var tasks = taskMaker({bridge: bridge, tizenConfig: tizenConfig});
+
       var data = this.data;
       var done = this.async();
 
       try {
-        tasks(config).tizenTask.call(this, data, done);
+        tasks.tizenTask.call(this, data, done);
       }
       catch (e) {
         grunt.fatal(e);
