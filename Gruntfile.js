@@ -66,4 +66,9 @@ module.exports = function (grunt) {
   grunt.registerTask('test', 'mochaccino:unit');
   grunt.registerTask('cov', 'mochaccino:cov');
   grunt.registerTask('default', 'test');
+  grunt.registerTask('all', [
+    'jshint',
+    'mochaccino:unit',
+    'mochaccino:int'
+  ]);
 };
