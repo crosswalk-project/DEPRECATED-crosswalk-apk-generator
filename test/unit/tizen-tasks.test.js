@@ -442,7 +442,7 @@ describe('tizenTask script', function () {
     });
   });
 
-  it('should include any custom arguments passed in as data', function (done) {
+  it('should pass data.args to runScript as arguments', function (done) {
     var data = {
       action: 'script',
       remoteScript: remoteScript,
@@ -465,5 +465,82 @@ describe('tizenTask script', function () {
       mockBridge.verify();
       done();
     });
+  });
+});
+
+describe('tizenTask launch', function () {
+  var tizenConfig = {
+    getMeta: function () {}
+  };
+
+  var bridge = {
+    launch: function () {}
+  };
+
+  var tasks = taskMaker({
+    bridge: bridge,
+    tizenConfig: tizenConfig
+  });
+
+  var meta = {
+    id: 'someid',
+    uri: 'someuri'
+  };
+
+  var remoteScript = '/tmp/tizen-app.sh';
+  var err = new Error();
+
+  it('should fail if tizenConfig.getMeta fails', function (done) {
+    sinon.stub(tizenConfig, 'getMeta').callsArgWith(0, err);
+
+    tasks.tizenTask({action: 'start'}, function (error) {
+      error.should.equal(err);
+      tizenConfig.getMeta.restore();
+      done();
+    });
+  });
+
+  it('should pass subcommand and stopOnFailure to bridge.launch', function (done) {
+    sinon.stub(tizenConfig, 'getMeta').callsArgWith(0, null, meta);
+
+    var stopOnFailure = true;
+    var action = 'start';
+    var data = {action: action, stopOnFailure: stopOnFailure};
+
+    var mockBridge = sinon.mock(bridge);
+    mockBridge.expects('launch')
+              .withArgs(action, meta.uri, stopOnFailure, aFunction)
+              .callsArg(3)
+              .once();
+
+    tasks.tizenTask(data, function () {
+      tizenConfig.getMeta.restore();
+      mockBridge.verify();
+      done();
+    });
+  });
+
+  it('should fail if bridge.launch fails for debug/start/stop', function () {
+
+  });
+
+  it('should succeed if bridge.launch succeeds for start/stop', function () {
+
+  });
+
+  it('should fail if subcommand=debug but no remote port', function () {
+
+  });
+
+  it('should fail if remote port but port forwarding fails', function () {
+
+  });
+
+  it('should run browser if port forwarded and browserCmd is set', function () {
+
+  });
+
+  it('should succeed if port forwarded but no browserCmd set', function () {
+
   });
 });
