@@ -46,8 +46,7 @@ module.exports = function (grunt) {
           { src: 'test/integration/*.test.js' }
         ],
         reporter: 'html-cov',
-        reportDir: 'build',
-        browserCmd: 'google-chrome'
+        reportDir: 'build'
       },
 
       unit: {
@@ -64,11 +63,13 @@ module.exports = function (grunt) {
   });
 
   grunt.registerTask('test', 'mochaccino:unit');
+  grunt.registerTask('test-int', 'mochaccino:int');
   grunt.registerTask('cov', 'mochaccino:cov');
-  grunt.registerTask('default', 'test');
+  grunt.registerTask('lint', 'jshint');
   grunt.registerTask('all', [
     'jshint',
     'mochaccino:unit',
     'mochaccino:int'
   ]);
+  grunt.registerTask('default', 'test');
 };

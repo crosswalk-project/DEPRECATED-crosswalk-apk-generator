@@ -26,6 +26,9 @@ module.exports = function (grunt) {
   /**
    * tizen_prepare
    * Task to push the tizen-app.sh script up to the device.
+   * This relies on tizen_configuration for its parameters
+   * but doesn't need to be configured separately in Gruntfile.js.
+   * See the tizen task docs for more info.
    */
   grunt.registerTask(
     'tizen_prepare',
@@ -57,9 +60,6 @@ module.exports = function (grunt) {
    * Caveats: it will probably fail miserably if you try to have
    * multiple Tizen devices attached at the same time.
    *
-   * DEPENDENCIES: grunt, lodash, xml2js, async
-   * (install with npm)
-   *
    * There are two tasks available:
    *
    *   tizen_prepare - push the tizen-app.sh script to the device;
@@ -75,18 +75,27 @@ module.exports = function (grunt) {
    *     stop
    *     debug
    *
-   * To be able to use these actions, you should configure and run
-   * grunt tizen:prepare to push the tizen-app.sh script to the device:
+   * To be able to use these actions, you push the tizen-app.sh script
+   * (included with grunt-tizen) to the device first. This script wraps
+   * commands on the device to make them easier to invoke via an sdb
+   * shell.
    *
-   *   tizen_configuration: {
-   *     tizenAppScriptDir: '/home/developer/', // where to put tizen-app.sh
-   *     configFile: 'data/config.xml', // path to config.xml
-   *     sdbCmd: process.env.SDB // sdb command to use
+   * To configure tizen:prepare, add a tizen_configuration  object via
+   * grunt.initConfig():
+   *
+   *   grunt.initConfig({
+   *     // ... other task configuration ...
+   *
+   *     tizen_configuration: {
+   *       tizenAppScriptDir: '/home/developer/', // where to put tizen-app.sh
+   *       configFile: 'data/config.xml', // path to config.xml
+   *       sdbCmd: process.env.SDB // sdb command to use
+   *     }
    *   }
    *
    * then:
    *
-   *   grunt tizen:prepare
+   *   grunt tizen_prepare
    *
    * Once the tizen-app.sh script is in place, you can configure the
    * other tasks to make use of it, e.g.
@@ -110,13 +119,9 @@ module.exports = function (grunt) {
    *   }
    * }
    *
-   * See the documentation for push(), install(), uninstall(),
-   * script() and launch() (which is used for start/stop/debug)
-   * for the valid configuration options for each task.
-   *
-   * Note that the wrt-launcher commands use the <widget> element's
-   * id attribute to determine the ID of the app; by default this is
-   * derived from a config.xml file in the root of the project.
+   * See the documentation in tizenTasks for push(), install(),
+   * uninstall(), script() and launch() (which is used for
+   * start/stop/debug) for the valid configuration options for each task.
    *
    * For tasks where asRoot=true, you will need a recent sdb
    * (Tizen 2.1-compatible). Specify the version of sdb to use
