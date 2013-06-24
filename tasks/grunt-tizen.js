@@ -24,10 +24,21 @@ var tasksMaker = require('../lib/tasks-maker');
 module.exports = function (grunt) {
   'use strict';
 
+  // the tasks have to be constructed on the fly,
+  // as the configuration they need is not available until the point
+  // where a task is invoked from grunt; however, we can cache
+  // them once we've generated them, as they will not change for
+  // any particular sequence of tasks run together
+  var tasks = null;
+
   var makeTasks = function (config) {
-    var bridge = bridgeMaker(config);
-    var tizenConfig = tizenConfigMaker(config);
-    return tasksMaker({bridge: bridge, tizenConfig: tizenConfig});
+    if (!tasks) {
+      var bridge = bridgeMaker(config);
+      var tizenConfig = tizenConfigMaker(config);
+      tasks = tasksMaker({bridge: bridge, tizenConfig: tizenConfig});
+    }
+
+    return tasks;
   };
 
   /**
