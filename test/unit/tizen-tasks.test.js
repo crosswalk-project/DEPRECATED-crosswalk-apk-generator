@@ -474,7 +474,9 @@ describe('tizenTask launch', function () {
   };
 
   var bridge = {
-    launch: function () {}
+    launch: function () {},
+    portForward: function () {},
+    runBrowser: function () {}
   };
 
   var tasks = taskMaker({
@@ -494,8 +496,8 @@ describe('tizenTask launch', function () {
     sinon.stub(tizenConfig, 'getMeta').callsArgWith(0, err);
 
     tasks.tizenTask({action: 'start'}, function (error) {
-      error.should.equal(err);
       tizenConfig.getMeta.restore();
+      error.should.equal(err);
       done();
     });
   });
@@ -514,33 +516,204 @@ describe('tizenTask launch', function () {
               .once();
 
     tasks.tizenTask(data, function () {
-      tizenConfig.getMeta.restore();
       mockBridge.verify();
+      tizenConfig.getMeta.restore();
       done();
     });
   });
 
-  it('should fail if bridge.launch fails for debug/start/stop', function () {
+  it('should fail if bridge.launch fails', function (done) {
+    sinon.stub(tizenConfig, 'getMeta').callsArgWith(0, null, meta);
 
+    var stopOnFailure = true;
+    var action = 'start';
+    var data = {action: action, stopOnFailure: stopOnFailure};
+
+    var mockBridge = sinon.mock(bridge);
+    mockBridge.expects('launch')
+              .withArgs(action, meta.uri, stopOnFailure, aFunction)
+              .callsArgWith(3, err)
+              .once();
+
+    tasks.tizenTask(data, function (error) {
+      mockBridge.verify();
+      tizenConfig.getMeta.restore();
+      error.should.equal(err);
+      done();
+    });
   });
 
-  it('should succeed if bridge.launch succeeds for start/stop', function () {
+  it('should continue if bridge.launch succeeds', function (done) {
+    sinon.stub(tizenConfig, 'getMeta').callsArgWith(0, null, meta);
 
+    var stopOnFailure = false;
+    var action = 'start';
+    var data = {action: action, stopOnFailure: stopOnFailure};
+
+    var mockBridge = sinon.mock(bridge);
+    mockBridge.expects('launch')
+              .withArgs(action, meta.uri, stopOnFailure, aFunction)
+              .callsArg(3)
+              .once();
+
+    tasks.tizenTask(data, function (error) {
+      mockBridge.verify();
+      tizenConfig.getMeta.restore();
+      expect(error).to.be.undefined;
+      done();
+    });
   });
 
-  it('should fail if subcommand=debug but no remote port', function () {
+  it('should fail if subcommand=debug but bridge.launch fails', function (done) {
+    sinon.stub(tizenConfig, 'getMeta').callsArgWith(0, null, meta);
 
+    var stopOnFailure = false;
+    var action = 'debug';
+    var data = {action: action, stopOnFailure: stopOnFailure};
+
+    var mockBridge = sinon.mock(bridge);
+
+    // bridge.launch fails for debug
+    mockBridge.expects('launch')
+              .withArgs(action, meta.uri, stopOnFailure, aFunction)
+              .callsArgWith(3, err)
+              .once();
+
+    tasks.tizenTask(data, function (error) {
+      mockBridge.verify();
+      tizenConfig.getMeta.restore();
+      error.should.equal(err);
+      done();
+    });
   });
 
-  it('should fail if remote port but port forwarding fails', function () {
+  it('should fail if subcommand=debug but no remote port', function (done) {
+    sinon.stub(tizenConfig, 'getMeta').callsArgWith(0, null, meta);
 
+    var stopOnFailure = false;
+    var action = 'debug';
+    var data = {action: action, stopOnFailure: stopOnFailure};
+
+    var mockBridge = sinon.mock(bridge);
+
+    // bridge.launch returns no PORT
+    mockBridge.expects('launch')
+              .withArgs(action, meta.uri, stopOnFailure, aFunction)
+              .callsArgWith(3, null, '-------GARBAGE-------')
+              .once();
+
+    tasks.tizenTask(data, function (error) {
+      mockBridge.verify();
+      tizenConfig.getMeta.restore();
+      error.message.should.match(/no remote port available for debugging/);
+      done();
+    });
   });
 
-  it('should run browser if port forwarded and browserCmd is set', function () {
+  it('should fail if remote port but port forwarding fails', function (done) {
+    sinon.stub(tizenConfig, 'getMeta').callsArgWith(0, null, meta);
 
+    var stopOnFailure = false;
+    var action = 'debug';
+    var data = {action: action, stopOnFailure: stopOnFailure, localPort: 9090};
+
+    var mockBridge = sinon.mock(bridge);
+
+    // bridge.launch returns PORT
+    mockBridge.expects('launch')
+              .withArgs(action, meta.uri, stopOnFailure, aFunction)
+              .callsArgWith(3, null, 'PORT 1234')
+              .once();
+
+    // port forwarding fails
+    mockBridge.expects('portForward')
+              .withArgs(9090, 1234, aFunction)
+              .callsArgWith(2, err)
+              .once();
+
+    tasks.tizenTask(data, function (error) {
+      mockBridge.verify();
+      tizenConfig.getMeta.restore();
+      error.should.equal(err);
+      done();
+    });
   });
 
-  it('should succeed if port forwarded but no browserCmd set', function () {
+  it('should run browser if port forwarded and browserCmd is set', function (done) {
+    sinon.stub(tizenConfig, 'getMeta').callsArgWith(0, null, meta);
 
+    var stopOnFailure = false;
+    var action = 'debug';
+    var browserCmd = 'giggle-crom';
+    var localPort = 9090;
+
+    var data = {
+      action: action,
+      stopOnFailure: stopOnFailure,
+      localPort: localPort,
+      browserCmd: browserCmd
+    };
+
+    var mockBridge = sinon.mock(bridge);
+
+    // bridge.launch returns PORT
+    mockBridge.expects('launch')
+              .withArgs(action, meta.uri, stopOnFailure, aFunction)
+              .callsArgWith(3, null, 'PORT 1234')
+              .once();
+
+    // port forwarding succeeds
+    mockBridge.expects('portForward')
+              .withArgs(localPort, 1234, aFunction)
+              .callsArg(2)
+              .once();
+
+    // run browser should be called
+    mockBridge.expects('runBrowser')
+              .withArgs(browserCmd, localPort, aFunction)
+              .callsArg(2)
+              .once();
+
+    tasks.tizenTask(data, function (error) {
+      mockBridge.verify();
+      tizenConfig.getMeta.restore();
+      expect(error).to.be.undefined;
+      done();
+    });
+  });
+
+  it('should succeed if port forwarded but no browserCmd set', function (done) {
+    sinon.stub(tizenConfig, 'getMeta').callsArgWith(0, null, meta);
+
+    var stopOnFailure = false;
+    var action = 'debug';
+    var localPort = 9090;
+
+    var data = {
+      action: action,
+      stopOnFailure: stopOnFailure,
+      localPort: localPort
+    };
+
+    var mockBridge = sinon.mock(bridge);
+
+    // bridge.launch returns PORT
+    mockBridge.expects('launch')
+              .withArgs(action, meta.uri, stopOnFailure, aFunction)
+              .callsArgWith(3, null, 'PORT 1234')
+              .once();
+
+    // port forwarding succeeds
+    mockBridge.expects('portForward')
+              .withArgs(localPort, 1234, aFunction)
+              .callsArg(2)
+              .once();
+
+    tasks.tizenTask(data, function (error) {
+      mockBridge.verify();
+      tizenConfig.getMeta.restore();
+      expect(error).to.be.undefined;
+      done();
+    });
   });
 });
