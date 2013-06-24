@@ -717,3 +717,110 @@ describe('tizenTask launch', function () {
     });
   });
 });
+
+describe('tizenTask asRoot', function () {
+  var bridge = {
+    install: function () {},
+    root: function () {}
+  };
+
+  var tasks = taskMaker({
+    bridge: bridge,
+    tizenConfig: {}
+  });
+
+  var err = new Error();
+
+  var data = {
+    action: 'install',
+    asRoot: true,
+    remoteFiles: '/tmp/package.wgt'
+  };
+
+  it('should fail task immediately if asRoot:true fails', function (done) {
+    var mockBridge = sinon.mock(bridge);
+
+    mockBridge.expects('root')
+              .withArgs(true, aFunction)
+              .callsArgWith(1, err)
+              .once();
+
+    tasks.tizenTask(data, function (error) {
+      mockBridge.verify();
+      error.should.equal(err);
+      done();
+    });
+  });
+
+  it('should run task if asRoot:true succeeds but fail when ' +
+     'asRoot:false fails', function (done) {
+    var mockBridge = sinon.mock(bridge);
+
+    mockBridge.expects('root')
+              .withArgs(true, aFunction)
+              .callsArg(1)
+              .once();
+
+    mockBridge.expects('install')
+              .withArgs(data.remoteFiles, aFunction)
+              .callsArg(1)
+              .once();
+
+    mockBridge.expects('root')
+              .withArgs(false, aFunction)
+              .callsArgWith(1, err)
+              .once();
+
+    tasks.tizenTask(data, function (error) {
+      mockBridge.verify();
+      error.should.equal(err);
+      done();
+    });
+  });
+
+  it('should fail if asRoot:true succeeds but subcommand fails', function (done) {
+    var mockBridge = sinon.mock(bridge);
+
+    mockBridge.expects('root')
+              .withArgs(true, aFunction)
+              .callsArg(1)
+              .once();
+
+    mockBridge.expects('install')
+              .withArgs(data.remoteFiles, aFunction)
+              .callsArgWith(1, err)
+              .once();
+
+    tasks.tizenTask(data, function (error) {
+      mockBridge.verify();
+      error.should.equal(err);
+      done();
+    });
+  });
+
+  it('should run task successfully if asRoot:true, bridge action ' +
+     ' and asRoot:false all succeed', function (done) {
+    var mockBridge = sinon.mock(bridge);
+
+    mockBridge.expects('root')
+              .withArgs(true, aFunction)
+              .callsArg(1)
+              .once();
+
+    mockBridge.expects('install')
+              .withArgs(data.remoteFiles, aFunction)
+              .callsArg(1)
+              .once();
+
+    mockBridge.expects('root')
+              .withArgs(false, aFunction)
+              .callsArg(1)
+              .once();
+
+    tasks.tizenTask(data, function (error) {
+      mockBridge.verify();
+      expect(error).to.be.undefined;
+      done();
+    });
+  });
+});
