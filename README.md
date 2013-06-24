@@ -1,3 +1,5 @@
+# grunt-tizen
+
 grunt-tizen is a grunt plugin for installing, uninstalling, running and debugging applications on a Tizen device.
 
 # Getting started
@@ -20,13 +22,15 @@ If you are interested in contributing to the project, the HACKING.md file explai
 
 # Dependencies
 
-Note that grunt-tizen depends on the <code>sdb</code> command line tool. This is available for various platforms from http://download.tizen.org/tools/latest-release/. If you want to use the <code>asRoot</code> option for the tizen task, you will need a very recent version of sdb with support for the "root" command (e.g. the tizen_2.0 branch). All of the other tizen:* tasks work with older versions of sdb, however.
+grunt-tizen depends on the <code>sdb</code> command line tool. This is available for various platforms from http://download.tizen.org/tools/latest-release/.
+
+If you want to use the <em>asRoot</em> option for the tizen task, you will need a very recent version of sdb with support for the "root" command (e.g. the tizen_2.0 branch). All of the other tizen:* tasks work with older versions of sdb, however.
 
 Some familiarity with <code>sdb</code> can be useful in some situations, where grunt-tizen doesn't or can't hide the underlying implementation details of <code>sdb</code>. The aim over time is to reduce the visibility of that tool and properly encapsulate it.
 
-You will also need a device running a recent version of Tizen 2.1/2.2. The device should be connected to the host running grunt via a USB connection.
+You will also need a device running a recent version of Tizen 2.1/2.2. The device should be connected to the host running grunt via a USB connection. This plugin has not been tested with multiple simultaneous USB connections to Tizen devices. It is unlikely to work in such an environment.
 
-This plugin has not been tested with multiple simultaneous USB connections to Tizen devices. It is unlikely to work in such an environment.
+Note that grunt-tizen does not package applications for deployment to Tizen. You will need another packaging tool (e.g. webtizen from the Tizen SDK or grunt-zipup) to package your application into a wgt file, ready for deployment.
 
 # General configuration
 
@@ -79,13 +83,19 @@ The tizen task is actually a multitask, but is typically used to run different a
 
 Note that several tasks rely on metadata from a <code>config.xml</code> file (Tizen package configuration XML file). A minimal version of this might look like:
 
-```<?xml version="1.0" encoding="UTF-8"?>
-<widget xmlns="http://www.w3.org/ns/widgets" xmlns:tizen="http://tizen.org/ns/widgets" id="https://github.com/01org/tetesttest" version="0.0.1" viewmodes="fullscreen">
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<widget xmlns="http://www.w3.org/ns/widgets"
+        xmlns:tizen="http://tizen.org/ns/widgets"
+        id="https://github.com/01org/tetesttest"
+        version="0.0.1"
+        viewmodes="fullscreen">
     <name>test</name>
     <icon src="icon.png"/>
     <tizen:application id="tetesttest" required_version="1.0"/>
     <content src="index.html"/>
-</widget>```
+</widget>
+```
 
 The two important pieces of data are the <code>id</code> attribute of the <code>widget</code> element; and the <code>id</code> of the <code>tizen:application</code> element. In grunt-tizen, these are referred to as the **app ID** and the **app URI** respectively. These identifiers are required by the <code>pkgcmd</code> and <code>wrt-launcher</code> commands on the Tizen device, and are automagically provided to the tizen-app.sh script when certain tizen task subcommands are invoked.
 
@@ -97,8 +107,7 @@ Having said that, the Bridge API (in <code>lib/bridge.js</code>) provides a low-
 
 #### asRoot
 
-Type: boolean
-Default: false
+type: boolean, default: false
 
 If set to <code>true</code>, grunt-tizen attempts to run the action specified as the root user on the device. It does this by preceding the "real" action with a call to <code>sdb root on</code>, then calling the action, then calling <code>sdb root off</code>.
 
@@ -110,8 +119,7 @@ If at any point you need to reset to the non-root user but are unable to do so v
 
 #### action
 
-Type: string
-Mandatory
+type: string, mandatory
 
 The <em>action</em> option specifies which subcommand to run. The available values are:
 
@@ -125,12 +133,11 @@ The <em>action</em> option specifies which subcommand to run. The available valu
 
 Each action has its own additional options, as described in the following sections.
 
-### push
+### action: push
 
 *   *localFiles*
 
-    Type: string | string[] | object
-    Mandatory
+    type: string | string[] | object, mandatory
 
     *   If the value is a string, it is treated as a reference to a single file on the local filesystem. If a relative path, it is resolved relative to <code>Gruntfile.js</code>.
     *   If an array of strings, this option is treated as a reference to multiple files on the local filesystem.
@@ -141,126 +148,117 @@ Each action has its own additional options, as described in the following sectio
               filter: 'latest'
             }
 
-        *   The <code>pattern</code> property is a file glob pattern which is matched against local files.
-        *   The <code>filter</code> property is optional. Currently only <code>'latest'</code> is supported. If set to this value, only the most recent of the files matching <code>pattern</code> is pushed.
+        *   The <em>pattern</em> property is a file glob pattern which is matched against local files.
+        *   The <em>filter</em> property is optional. Currently only <em>'latest'</em> is supported. If set to this value, only the most recent of the files matching <em>pattern</em> is pushed.
 
 *   *remoteDir*
 
-    Type: string
-    Mandatory
+    type: string, mandatory
 
-    The remote directory on the device to which the files specified by <code>localFiles</code> should be pushed.
+    The remote directory on the device to which the files specified by <em>localFiles</em> should be pushed.
 
-    The destination filename for a local file is the basename of the local file joined to <code>remoteDir</code>.
+    The destination filename for a file is the basename of the local file joined to <em>remoteDir</em>.
 
 *   *chmod*
 
-    Type: string
-    Default: null
+    type: string, default: null
 
     The chmod string to apply to each file after it is pushed to the device, to set permissions for the file. This can be a symbolic string (e.g. 'a+x') or an octal one (e.g. '0777').
 
 *   *overwrite*
 
-    Type: boolean
-    Default: true
+    type: boolean, default: true
 
     If set to <code>true</code>, any existing file with a matching file name will be overwritten. If <code>false</code>, the action will fail if a file with the same path already exists on the device.
 
-### start
-
-*   *stopOnFailure*
-
-    Type: boolean
-    Default: false
-
-    If the application cannot be started and this option is set to <code>true</code>, grunt will exit with an error. If <code>false</code>, any subsequent tasks will still run even if this task failed.
-
-### stop
-
-*   *stopOnFailure*
-
-    Type: boolean
-    Default: false
-
-    If the application cannot be stopped and this option is set to <code>true</code>, grunt will exit with an error. If <code>false</code>, any subsequent tasks will still run even if this task failed.
-
-### debug
-
-*   *localPort*
-
-    Type: integer
-    Default: 8888
-
-    If an application is started in debug mode, this specifies the local port which should be connected to the remote debug port on the device.
-
-*   *browserCmd*
-
-    Type: string
-    Default: null
-
-    Command to open a browser with the debug window for the application. If set, grunt-tizen will attempt to run the specified browser.
-
-    The string should have a format like:
-
-        'giggle-crom %URL%'
-
-    The '%URL%' part of this provides a placeholder for grunt-tizen to insert the debug URL for the application.
-
-At the moment, only Google Chrome is known to work as a debug client for Tizen apps.
-
-*   *stopOnFailure*
-
-    Type: boolean
-    Default: false
-
-    If the application cannot be started and this option is set to <code>true</code>, grunt will exit with an error. If <code>false</code>, any subsequent tasks will still run even if this task failed.
-
-    Note that if you are debugging and any step in the debug sequence fails (i.e. if a remote port cannot be established on the device, or the browserCmd is not set), grunt will exit anyway. This option only has an effect on the application start itself.
-
-### install
+### action: install
 
 *   *remoteFiles*
 
-    Type: string | string[] | object
-    Mandatory
+    type: string | string[] | object, mandatory
 
     Specifies the paths of wgt files on the device which should be installed.
 
     See <em>push options &gt; localFiles</em> (above) for the acceptable values.
 
-### uninstall
+### action: uninstall
 
 *   *stopOnFailure*
 
-    Type: boolean
-    Default: false
+    type: boolean, default: false
 
     If the application cannot be uninstalled and this option is set to <code>true</code>, grunt will exit with an error. If <code>false</code>, any subsequent tasks will still run even if this task failed.
 
-### script
+### action: start
+
+*   *stopOnFailure*
+
+    type: boolean, default: false
+
+    If the application cannot be started and this option is set to <code>true</code>, grunt will exit with an error. If <code>false</code>, any subsequent tasks will still run even if this task failed.
+
+### action: stop
+
+*   *stopOnFailure*
+
+    type: boolean, default: false
+
+    If the application cannot be stopped and this option is set to <code>true</code>, grunt will exit with an error. If <code>false</code>, any subsequent tasks will still run even if this task failed.
+
+### action: debug
+
+*   *localPort*
+
+    type: integer, default: 8888
+
+    If an application is started in debug mode, this specifies the local port which should be connected to the remote debug port on the device.
+
+*   *browserCmd*
+
+    type: string, default: null
+
+    Command to open a browser with the debug window for the application. If set, grunt-tizen will attempt to run the specified browser.
+
+    The string should have a format like:
+
+        'google-chrome %URL%'
+
+    The '%URL%' part of this provides a placeholder for grunt-tizen to insert the debug URL for the application.
+
+    At the moment, only Google Chrome is known to work as a debug client for Tizen apps.
+
+*   *stopOnFailure*
+
+    type: boolean, default: false
+
+    If the application cannot be started and this option is set to <code>true</code>, grunt will exit with an error. If <code>false</code>, any subsequent tasks will still run even if this task failed.
+
+    Note that if you are debugging and any step in the debug sequence fails (i.e. if a remote port cannot be established on the device, or the browserCmd is not set), grunt will exit anyway. This option only has an effect on the application start itself.
+
+### action: script
 
 By default, running this action invokes the specified remoteScript like this:
 
-    remoteScript &lt;app ID&gt; &lt;app URI&gt;
+    remoteScript <app URI> <app ID>
 
 where:
 
-*   <code><app ID></code> is the value in the
+*   <code>&lt;app ID&gt;</code> is the value of the <code>widget@id</code> attribute in <code>config.xml</code>.
+*   <code>&lt;app URI&gt;</code> is the value of the <code>widget.tizen:application@id</code> attribute in <code>config.xml</code>.
+
+Extra arguments can be passed to the script by setting the <em>args</em> option.
 
 Options:
 
 *   *remoteScript*
 
-    Type: string
-    Mandatory
+    type: string, mandatory
 
     Remote path on the device of the script to be executed.
 
 *   *args*
 
-    Type: string[]
-    Default: []
+    type: string[], default: []
 
     Extra arguments to pass to the script.
 
