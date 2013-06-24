@@ -10,11 +10,18 @@
 /**
  * grunt-tizen: Tizen-related tasks for grunt
  */
-var factory = require('../lib/factory');
-var taskMaker = require('../lib/tizen-tasks');
+var bridgeMaker = require('../lib/bridge-maker');
+var tizenConfigMaker = require('../lib/tizen-config-maker');
+var tasksMaker = require('../lib/tasks-maker');
 
 module.exports = function (grunt) {
   'use strict';
+
+  var makeTasks = function (config) {
+    var bridge = bridgeMaker(config);
+    var tizenConfig = tizenConfigMaker(config);
+    return tasksMaker({bridge: bridge, tizenConfig: tizenConfig});
+  };
 
   /**
    * tizen_prepare
@@ -27,14 +34,10 @@ module.exports = function (grunt) {
       var config = grunt.config.get('tizen_configuration');
       config.logger = grunt.log;
 
-      var bridge = factory.makeBridge(config);
-      var tizenConfig = factory.makeTizenConfig(config);
-      var tasks = taskMaker({bridge: bridge, tizenConfig: tizenConfig});
-
       var done = this.async();
 
       try {
-        tasks.tizenPrepareTask.call(this, done);
+        makeTasks(config).tizenPrepareTask.call(this, done);
       }
       catch (e) {
         grunt.fatal(e);
@@ -126,15 +129,11 @@ module.exports = function (grunt) {
       var config = grunt.config.get('tizen_configuration');
       config.logger = grunt.log;
 
-      var bridge = factory.makeBridge(config);
-      var tizenConfig = factory.makeTizenConfig(config);
-      var tasks = taskMaker({bridge: bridge, tizenConfig: tizenConfig});
-
       var data = this.data;
       var done = this.async();
 
       try {
-        tasks.tizenTask.call(this, data, done);
+        makeTasks(config).tizenTask.call(this, data, done);
       }
       catch (e) {
         grunt.fatal(e);

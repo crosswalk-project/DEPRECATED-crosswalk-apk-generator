@@ -5,7 +5,7 @@ var expect = chai.expect;
 
 var sinon = require('sinon');
 
-var taskMaker = require('../../lib/tizen-tasks');
+var tasksMaker = require('../../lib/tasks-maker');
 
 // matchers
 var aFunction = sinon.match.instanceOf(Function)
@@ -14,7 +14,7 @@ describe('constructor', function () {
 
   it('should throw an error if no bridge is supplied', function () {
     var testConstructor = function () {
-      taskMaker({
+      tasksMaker({
         tizenConfig: {}
       });
     };
@@ -24,7 +24,7 @@ describe('constructor', function () {
 
   it('should throw an error if no tizenConfig is supplied', function () {
     var testConstructor = function () {
-      taskMaker({
+      tasksMaker({
         bridge: {}
       });
     };
@@ -34,7 +34,7 @@ describe('constructor', function () {
 
   it('should return an object with tizenPrepareTask and ' +
      'tizenTask tasks', function () {
-    var tasks = taskMaker({
+    var tasks = tasksMaker({
       bridge: {},
       tizenConfig: {}
     });
@@ -54,7 +54,7 @@ describe('tizenPrepareTask', function () {
   it('should callback with error if push fails', function (done) {
     bridge.push = sinon.stub().callsArgWith(4, new Error('push failed'));
 
-    var tasks = taskMaker({
+    var tasks = tasksMaker({
       bridge: bridge,
       tizenConfig: {}
     });
@@ -68,7 +68,7 @@ describe('tizenPrepareTask', function () {
   it('should callback with 0 args if push succeeds', function (done) {
     bridge.push = sinon.stub().callsArg(4);
 
-    var tasks = taskMaker({
+    var tasks = tasksMaker({
       bridge: bridge,
       tizenConfig: {}
     });
@@ -81,7 +81,7 @@ describe('tizenPrepareTask', function () {
 });
 
 describe('tizenTask', function () {
-  var tasks = taskMaker({
+  var tasks = tasksMaker({
     bridge: {},
     tizenConfig: {}
   });
@@ -107,7 +107,7 @@ describe('tizenTask push', function () {
     push: function () {}
   };
 
-  var tasks = taskMaker({
+  var tasks = tasksMaker({
     bridge: bridge,
     tizenConfig: {}
   });
@@ -223,7 +223,7 @@ describe('tizenTask install', function () {
     install: function () {}
   };
 
-  var tasks = taskMaker({
+  var tasks = tasksMaker({
     bridge: bridge,
     tizenConfig: {}
   });
@@ -282,7 +282,7 @@ describe('tizenTask uninstall', function () {
     uninstall: function () {}
   };
 
-  var tasks = taskMaker({
+  var tasks = tasksMaker({
     bridge: bridge,
     tizenConfig: tizenConfig
   });
@@ -382,7 +382,7 @@ describe('tizenTask script', function () {
     runScript: function () {}
   };
 
-  var tasks = taskMaker({
+  var tasks = tasksMaker({
     bridge: bridge,
     tizenConfig: tizenConfig
   });
@@ -479,7 +479,7 @@ describe('tizenTask launch', function () {
     runBrowser: function () {}
   };
 
-  var tasks = taskMaker({
+  var tasks = tasksMaker({
     bridge: bridge,
     tizenConfig: tizenConfig
   });
@@ -724,7 +724,7 @@ describe('tizenTask asRoot', function () {
     root: function () {}
   };
 
-  var tasks = taskMaker({
+  var tasks = tasksMaker({
     bridge: bridge,
     tizenConfig: {}
   });
