@@ -794,7 +794,8 @@ describe('tizenTask asRoot', function () {
     });
   });
 
-  it('should fail if asRoot:true succeeds but subcommand fails', function (done) {
+  it('should fail if asRoot:true succeeds but subcommand fails ' +
+     'but still run asRoot:false', function (done) {
     var mockBridge = sinon.mock(bridge);
 
     mockBridge.expects('root')
@@ -805,6 +806,11 @@ describe('tizenTask asRoot', function () {
     mockBridge.expects('install')
               .withArgs(data.remoteFiles, aFunction)
               .callsArgWith(1, err)
+              .once();
+
+    mockBridge.expects('root')
+              .withArgs(false, aFunction)
+              .callsArg(1)
               .once();
 
     tasks.tizenTask(data, function (error) {
