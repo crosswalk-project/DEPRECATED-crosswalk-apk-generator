@@ -53,7 +53,7 @@ The shared configuration for both tasks (<code>tizen_prepare</code> and <code>ti
       }
    });
 
-The <code>tizen-app.sh</code> script is a shell script which runs on Tizen devices, wrapping native Tizen commands to make them simpler to call remotely via <code>sdb shell</code>. It also does some of the work to interpret error messages and output from the Tizen commands to simplify the grunt-tizen code. You can find it in the <code>scripts</code> directory of the grunt-tizen source.
+The <code>tizen-app.sh</code> script is a shell script which runs on Tizen devices, wrapping native Tizen commands to make them simpler to call remotely via <code>sdb shell</code>. It also does some of the work to interpret error messages and output from the Tizen commands to simplify the grunt-tizen code. You can find it in the <em>scripts</em> directory of the grunt-tizen source.
 
 Configuration for grunt-tizen tasks is described below.
 
@@ -61,11 +61,11 @@ Configuration for grunt-tizen tasks is described below.
 
 ## tizen_prepare task
 
-This task automates pushing the <code>tizen-app.sh</code> script to the attached device, overwriting any file already in the specified location. It also applies a <code>chmod +x</code> to the script to make it executable.
+This task automates pushing the <em>tizen-app.sh</em> script to the attached device, overwriting any file already in the specified location. It also applies a <code>chmod +x</code> to the script to make it executable.
 
 The destination of the file is <code>tizenAppScriptDir</code> (from tizen_configuration) + <code>'tizen-app.sh'</code>.
 
-The task requires no configuration beyond that in the <code>tizen_configuration</code> section (see above).
+The task requires no configuration beyond that in the <em>tizen_configuration</em> section (see above).
 
 Run it with:
 
@@ -73,7 +73,7 @@ Run it with:
 
 You only need to run this task once to put the script in place. Once you've done this, you should be able to use the full range of commands to the tizen task, as described below.
 
-It is also possible to run the <code>tizen-app.sh</code> script independently of grunt-tizen: see the script for details of how to invoke it.
+It is also possible to run the <em>tizen-app.sh</em> script independently of grunt-tizen: see the script for details of how to invoke it.
 
 ## tizen task
 
@@ -81,7 +81,7 @@ The tizen task wraps the sdb command to perform various actions with a project.
 
 The tizen task is actually a multitask, but is typically used to run different actions on the target device, specified by an <code>action</code> option (see *Options* below).
 
-Note that several tasks rely on metadata from a <code>config.xml</code> file (Tizen package configuration XML file). A minimal version of this might look like:
+Note that several tasks rely on metadata from a <em>config.xml</em> file (Tizen package configuration XML file). A minimal version of this might look like:
 
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
@@ -101,7 +101,7 @@ The two important pieces of data are the <code>id</code> attribute of the <code>
 
 It is also important to note that these tasks are intended for the control of a single application, with a single config.xml file, and are not intended to control multiple applications simultaneously.
 
-Having said that, the Bridge API (in <code>lib/bridge.js</code>) provides a low-level wrapper around <code>sdb</code> which is not tied to a single <code>config.xml</code> file. Alternative grunt tasks could be defined on top of the Bridge API if more flexibility were needed.
+Having said that, the Bridge API (in <em>lib/bridge.js</em>) provides a low-level wrapper around <code>sdb</code> which is not tied to a single <em>config.xml</em> file. Alternative grunt tasks could be defined on top of the Bridge API if more flexibility were needed.
 
 ### Options
 
@@ -139,7 +139,7 @@ Each action has its own additional options, as described in the following sectio
 
     type: string | string[] | object, mandatory
 
-    *   If the value is a string, it is treated as a reference to a single file on the local filesystem. If a relative path, it is resolved relative to <code>Gruntfile.js</code>.
+    *   If the value is a string, it is treated as a reference to a single file on the local filesystem. If a relative path, it is resolved relative to <em>Gruntfile.js</em>.
     *   If an array of strings, this option is treated as a reference to multiple files on the local filesystem.
     *   If an object, the value should have the following format:
 
@@ -243,8 +243,8 @@ By default, running this action invokes the specified remoteScript like this:
 
 where:
 
-*   <code>&lt;app ID&gt;</code> is the value of the <code>widget@id</code> attribute in <code>config.xml</code>.
-*   <code>&lt;app URI&gt;</code> is the value of the <code>widget.tizen:application@id</code> attribute in <code>config.xml</code>.
+*   <code>&lt;app ID&gt;</code> is the value of the <code>widget@id</code> attribute in <em>config.xml</em>.
+*   <code>&lt;app URI&gt;</code> is the value of the <code>widget.tizen:application@id</code> attribute in <em>config.xml</em>.
 
 Extra arguments can be passed to the script by setting the <em>args</em> option.
 
