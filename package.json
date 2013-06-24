@@ -1,7 +1,7 @@
 {
   "name": "grunt-tizen",
   "version": "0.0.1",
-  "description": "grunt tools for managing Tizen apps",
+  "description": "grunt tasks for managing Tizen apps",
   "main": "tasks/grunt-tizen.js",
   "scripts": {
     "test": "grunt mochaccino:unit mochaccino:int",
