@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<widget xmlns="http://www.w3.org/ns/widgets" xmlns:tizen="http://tizen.org/ns/widgets" id="https://otc.intel.com/onetwothre" version="0.0.1" viewmodes="fullscreen">
-    <name>onetwothre</name>
+<widget xmlns="http://www.w3.org/ns/widgets" xmlns:tizen="http://tizen.org/ns/widgets" id="http://otc.intel.com/tztinyapp0" version="1.0.0" viewmodes="fullscreen">
+    <name>Tizen test</name>
     <icon src="icon.png"/>
-    <tizen:application id="onetwothre.onetwothre" package="onetwothre" required_version="2.1"/>
+    <tizen:application id="tztinyapp0.1234567890" package="tztinyapp0" required_version="2.1"/>
     <content src="index.html"/>
 </widget>
