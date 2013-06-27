@@ -236,7 +236,8 @@ describe('tizenTask push', function () {
 describe('tizenTask install', function () {
 
   var bridge = {
-    install: function () {}
+    install: function () {},
+    root: function () {}
   };
 
   var tasks = tasksMaker({
@@ -251,8 +252,11 @@ describe('tizenTask install', function () {
       action: 'install'
     };
 
+    sinon.stub(bridge, 'root').callsArg(1);
+
     tasks.tizenTask(data, function (err) {
       err.should.be.instanceOf(Error);
+      bridge.root.restore();
       done();
     });
   });
@@ -263,11 +267,13 @@ describe('tizenTask install', function () {
       remoteFiles: remoteFiles
     };
 
+    sinon.stub(bridge, 'root').callsArg(1);
     sinon.stub(bridge, 'install').callsArgWith(1, new Error());
 
     tasks.tizenTask(data, function (err) {
       err.should.be.instanceOf(Error);
       bridge.install.restore();
+      bridge.root.restore();
       done();
     });
   });
@@ -278,11 +284,13 @@ describe('tizenTask install', function () {
       remoteFiles: remoteFiles
     };
 
+    sinon.stub(bridge, 'root').callsArg(1);
     sinon.stub(bridge, 'install').callsArgWith(1);
 
     tasks.tizenTask(data, function (err) {
       expect(err).to.be.undefined;
       bridge.install.restore();
+      bridge.root.restore();
       done();
     });
   });
@@ -303,8 +311,8 @@ describe('tizenTask uninstall', function () {
     tizenConfig: tizenConfig
   });
 
-  var expectedId = 'someid';
-  var meta = { id: expectedId };
+  var expectedPackageName = 'somePackageName';
+  var meta = { packageName: expectedPackageName };
 
   it('should fail if config.xml metadata cannot be retrieved', function (done) {
     var data = {
@@ -331,7 +339,7 @@ describe('tizenTask uninstall', function () {
 
     var mockBridge = sinon.mock(bridge)
     mockBridge.expects('uninstall')
-              .withArgs(expectedId, expectedStop, aFunction)
+              .withArgs(expectedPackageName, expectedStop, aFunction)
               .callsArg(2)
               .once();
 
@@ -355,7 +363,7 @@ describe('tizenTask uninstall', function () {
 
     var mockBridge = sinon.mock(bridge)
     mockBridge.expects('uninstall')
-              .withArgs(expectedId, expectedStop, aFunction)
+              .withArgs(expectedPackageName, expectedStop, aFunction)
               .callsArgWith(2, new Error())
               .once();
 
@@ -376,7 +384,7 @@ describe('tizenTask uninstall', function () {
 
     var mockBridge = sinon.mock(bridge)
     mockBridge.expects('uninstall')
-              .withArgs(expectedId, false, aFunction)
+              .withArgs(expectedPackageName, false, aFunction)
               .callsArgWith(2, new Error())
               .once();
 
@@ -821,7 +829,7 @@ describe('tizenTask asRoot', function () {
   });
 
   it('should run task successfully if asRoot:true, bridge action ' +
-     ' and asRoot:false all succeed', function (done) {
+     'and asRoot:false all succeed', function (done) {
     var mockBridge = sinon.mock(bridge);
 
     mockBridge.expects('root')
