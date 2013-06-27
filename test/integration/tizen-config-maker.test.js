@@ -47,7 +47,8 @@ describe('tizenConfigMaker', function () {
 
       result.should.eql({
         uri: 'https://bogus.url/bogusappln',
-        id: 'bogusappln'
+        id: 'bogusappln',
+        packageName: 'bogusappln.1234567890'
       });
 
       done();
