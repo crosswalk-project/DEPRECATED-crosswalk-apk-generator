@@ -63,15 +63,15 @@ start () {
 
 # properly stop a Tizen app
 stop () {
-  APP_URI=$2
+  APP_ID=$2
 
-  if [[ $APP_URI = "" ]] ; then
-    echo "Usage: $0 $1 <app URI>"
+  if [[ $APP_ID = "" ]] ; then
+    echo "Usage: $0 $1 <app ID>"
     exit 1
   fi
 
   # check whether app is installed
-  APP_EXISTS=`wrt-launcher -l | grep $APP_URI`
+  APP_EXISTS=`wrt-launcher -l | grep $APP_ID`
 
   NOT_RUNNING=
 
@@ -81,19 +81,19 @@ stop () {
   # it can't be uninstalled
   if [ "x$APP_EXISTS" != "x" ] ; then
     while [ "x$NOT_RUNNING" = "x" ] ; do
-      RESULT=`wrt-launcher -k $APP_URI | grep "App isn't running"`
+      RESULT=`wrt-launcher -k $APP_ID | grep "App isn't running"`
 
       if [ "x" != "x$RESULT" ] ; then
         NOT_RUNNING=true
       else
-        echo "$APP_URI is still alive"
+        echo "$APP_ID is still alive"
         sleep 0.25
       fi
     done
 
-    echo "$APP_URI really is dead"
+    echo "$APP_ID really is dead"
   else
-    echo "WARNING: App with ID $APP_URI does not exist, so not killing or uninstalling"
+    echo "WARNING: App with ID $APP_ID does not exist, so not killing or uninstalling"
   fi
 }
 

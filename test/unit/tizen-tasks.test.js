@@ -527,7 +527,7 @@ describe('tizenTask launch', function () {
 
     var mockBridge = sinon.mock(bridge);
     mockBridge.expects('launch')
-              .withArgs(action, meta.uri, stopOnFailure, aFunction)
+              .withArgs(action, meta.id, stopOnFailure, aFunction)
               .callsArg(3)
               .once();
 
@@ -547,7 +547,7 @@ describe('tizenTask launch', function () {
 
     var mockBridge = sinon.mock(bridge);
     mockBridge.expects('launch')
-              .withArgs(action, meta.uri, stopOnFailure, aFunction)
+              .withArgs(action, meta.id, stopOnFailure, aFunction)
               .callsArgWith(3, err)
               .once();
 
@@ -568,7 +568,7 @@ describe('tizenTask launch', function () {
 
     var mockBridge = sinon.mock(bridge);
     mockBridge.expects('launch')
-              .withArgs(action, meta.uri, stopOnFailure, aFunction)
+              .withArgs(action, meta.id, stopOnFailure, aFunction)
               .callsArg(3)
               .once();
 
@@ -591,7 +591,7 @@ describe('tizenTask launch', function () {
 
     // bridge.launch fails for debug
     mockBridge.expects('launch')
-              .withArgs(action, meta.uri, stopOnFailure, aFunction)
+              .withArgs(action, meta.id, stopOnFailure, aFunction)
               .callsArgWith(3, err)
               .once();
 
@@ -614,7 +614,7 @@ describe('tizenTask launch', function () {
 
     // bridge.launch returns no PORT
     mockBridge.expects('launch')
-              .withArgs(action, meta.uri, stopOnFailure, aFunction)
+              .withArgs(action, meta.id, stopOnFailure, aFunction)
               .callsArgWith(3, null, '-------GARBAGE-------')
               .once();
 
@@ -637,7 +637,7 @@ describe('tizenTask launch', function () {
 
     // bridge.launch returns PORT
     mockBridge.expects('launch')
-              .withArgs(action, meta.uri, stopOnFailure, aFunction)
+              .withArgs(action, meta.id, stopOnFailure, aFunction)
               .callsArgWith(3, null, 'PORT 1234')
               .once();
 
@@ -674,7 +674,7 @@ describe('tizenTask launch', function () {
 
     // bridge.launch returns PORT
     mockBridge.expects('launch')
-              .withArgs(action, meta.uri, stopOnFailure, aFunction)
+              .withArgs(action, meta.id, stopOnFailure, aFunction)
               .callsArgWith(3, null, 'PORT 1234')
               .once();
 
@@ -715,7 +715,7 @@ describe('tizenTask launch', function () {
 
     // bridge.launch returns PORT
     mockBridge.expects('launch')
-              .withArgs(action, meta.uri, stopOnFailure, aFunction)
+              .withArgs(action, meta.id, stopOnFailure, aFunction)
               .callsArgWith(3, null, 'PORT 1234')
               .once();
 
