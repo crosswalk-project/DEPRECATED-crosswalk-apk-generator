@@ -21,7 +21,7 @@
     "glob": "~3.2.1"
   },
   "devDependencies": {
-    "grunt-mochaccino": "0.0.1",
+    "grunt-mochaccino": "~0.1.0",
     "blanket": "~1.1.5",
     "chai": "~1.6.1",
     "sinon": "~1.7.2",
