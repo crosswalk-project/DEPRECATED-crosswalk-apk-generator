@@ -24,11 +24,13 @@ If you are interested in contributing to the project, the HACKING.md file explai
 
 grunt-tizen depends on the <code>sdb</code> command line tool. This is available for various platforms from http://download.tizen.org/tools/latest-release/.
 
+You will also need a device running Tizen 2.1.
+
 If you want to use the <em>asRoot</em> option for the tizen task, you will need a very recent version of sdb with support for the "root" command (e.g. the tizen_2.0 branch). All of the other tizen:* tasks work with older versions of sdb, however.
 
 Some familiarity with <code>sdb</code> can be useful in some situations, where grunt-tizen doesn't or can't hide the underlying implementation details of <code>sdb</code>. The aim over time is to reduce the visibility of that tool and properly encapsulate it.
 
-You will also need a device running a recent version of Tizen 2.1/2.2. The device should be connected to the host running grunt via a USB connection. This plugin has not been tested with multiple simultaneous USB connections to Tizen devices. It is unlikely to work in such an environment.
+The device should be connected to the host running grunt via a USB connection. This plugin has not been tested with multiple simultaneous USB connections to Tizen devices. It is unlikely to work in such an environment.
 
 Note that grunt-tizen does not package applications for deployment to Tizen. You will need another packaging tool (e.g. webtizen from the Tizen SDK or grunt-zipup) to package your application into a wgt file, ready for deployment.
 
