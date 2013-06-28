@@ -9,7 +9,7 @@
       "pattern": "grunt-tizen/lib/"
     }
   },
-  "repository": "",
+  "repository": "http://github.com/01org/grunt-tizen",
   "author": "Elliot Smith <elliot.smith@intel.com>",
   "license": "Apache v2",
   "readmeFilename": "README.md",
