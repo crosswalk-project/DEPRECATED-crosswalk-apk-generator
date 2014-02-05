@@ -11,6 +11,18 @@ crosswalk-apk-generator has been tested on the following platforms:
 
 It currently supports Crosswalk-4.
 
+# Installation
+
+You will need **node** and **npm** installed first.
+
+Then you can install crosswalk-apk-generator with:
+
+    npm install crosswalk-apk-generator
+
+Before you can use it, you'll also need to install [the pre-requisites required to build an Android package](#pre-requisites).
+
+See the [Command-line tools](#command-line-tools) section for usage instructions.
+
 # How Crosswalk works
 
 To run an app on Android using Crosswalk, you need a Crosswalk apk package for the HTML5 application you want to run, installed on the Android device. This has to be generated for each app, and is installed using adb (part of the Android SDK).
@@ -42,22 +54,6 @@ However, they provide several benefits over the existing Crosswalk Android scrip
 
 Unfortunately, building a Crosswalk Android apk still requires a lot of dependencies:
 
-*   **node (and npm)** for your platform (so you can run the scripts in this project)
-
-*   **git**
-
-*   **git clone of crosswalk-apk-generator**; you can get this with:
-
-        git clone <project url tbc> crosswalk-apk-generator
-
-    Note that if you clone the project to a different directory name (not `crosswalk-apk-generator`), test coverage reporting by blanketjs won't work. (It relies on the `scripts.blanket.pattern` property in `package.json`, which includes the clone's directory name to prevent blanketjs from instrumenting code from 3rd party packages.)
-
-    Once you've got the clone, go to the root directory and use `npm` to install the dependencies:
-
-        npm install
-
-*   If you want to distribute apks via an Android app store, you will need your own keystore. You can set this up using the Java `keytool` application. If you're only debugging your application, you can use the built-in xwalk-android keystore, which crosswalk-apk-generator will use by default.
-
 *   **Android SDK** for your platform from http://developer.android.com/sdk/index.html.
 
     Once you've got the Android SDK, run the SDK manager (`SDK Manager.exe` on Windows, `android` on Linux). Then install the **Android SDK Build-tools, version 19**. Note that while you *may* use other versions of the SDK build tools, these are the ones known to work.
@@ -69,6 +65,8 @@ Unfortunately, building a Crosswalk Android apk still requires a lot of dependen
 *   **Java JDK**. Once installed, make sure you set the `JAVA_HOME` environment variable. It will also make life easier if you put the `javac` and `jarsigner` binaries on your PATH.
 
 *   **Apache Ant**. Again, after installation, ensure that the `ant` binary is on your PATH.
+
+*   If you want to distribute apks via an Android app store, you will need your own keystore. You can set this up using the Java `keytool` application. If you're only debugging your application, you can use the built-in xwalk-android keystore, which crosswalk-apk-generator will use by default.
 
 # Command-line tools
 
@@ -396,7 +394,7 @@ TODO
 
 # Licence
 
-[MIT](http://opensource.org/licenses/MIT); see the LICENCE-MIT file in the source for details.
+[Apache v2](http://opensource.org/licenses/Apache-2.0); see the LICENCE-APACHE-V2 file in the source for details.
 
 The app provided for testing purposes in `test/functional/demo-app` is a built version of the SweetSpot game from https://github.com/01org/webapps-sweetspot, released under the Apache v2 license.
 
