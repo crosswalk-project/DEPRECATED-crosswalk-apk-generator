@@ -1,0 +1,105 @@
+[
+  {
+    "criteria": {
+      "version": ["^4"]
+    },
+
+    "pieces": {
+      "xwalkRuntimeClientJar": {
+        "type": "apk:jar",
+        "description": "jar file included in apk",
+        "files": ["xwalk_app_runtime_java.jar"],
+        "guessDirs": ["libs"]
+      },
+
+      "xwalkEmbeddedJar": {
+        "type": "apk:jar",
+        "description": "jar file included in apk (embedded mode only)",
+        "files": ["xwalk_core_embedded.dex.jar"],
+        "guessDirs": ["libs"]
+      },
+
+      "xwalkCoreResources": {
+        "type": "apk:R-resources",
+        "description": "resources compiled to R.java file and included in apk",
+        "resDirs": ["gen/xwalk_core_java/res_grit"],
+        "libs": ["libs_res/runtime"],
+        "pkg": "org.xwalk.core"
+      },
+
+      "chromiumUiResources": {
+        "type": "apk:R-resources",
+        "description": "resources compiled to R.java file and included in apk",
+        "resDirs": [
+          "gen/ui_java/res_crunched",
+          "gen/ui_java/res_v14_compatibility",
+          "gen/ui_java/res_grit"
+        ],
+        "libs": ["libs_res/ui"],
+        "pkg": "org.chromium.ui"
+      },
+
+      "chromiumContentResources": {
+        "type": "apk:R-resources",
+        "description": "resources compiled to R.java file and included in apk",
+        "resDirs": [
+          "gen/content_java/res_crunched",
+          "gen/content_java/res_v14_compatibility",
+          "gen/content_java/res_grit"
+        ],
+        "libs": ["libs_res/content"],
+        "pkg": "org.chromium.content"
+      },
+
+      "xwalkAssets": {
+        "type": "apk:resources",
+        "description": "resources included in apk",
+        "dirs": ["native_libs_res"]
+      },
+
+      "xwalkApkPackageAntFile": {
+        "type": "build:package",
+        "description": "Ant build script for packaging apk",
+        "files": ["apk-package.xml"],
+        "guessDirs": ["scripts/ant"]
+      },
+
+      "keystore": {
+        "type": "build:sign",
+        "description": "keytool keystore for signing debug apks",
+        "files": ["xwalk-debug.keystore"],
+        "guessDirs": ["scripts/ant"]
+      }
+    }
+  },
+
+  {
+    "criteria": {
+      "version": ["^4"],
+      "arch": ["x86"]
+    },
+
+    "pieces": {
+      "nativeLibs": {
+        "type": "apk:native-library",
+        "description": "Crosswalk embedded runtime library (x86)",
+        "dirs": ["native_libs/x86/libs"]
+      }
+    }
+  },
+
+  {
+    "criteria": {
+      "version": ["^4"],
+      "arch": ["arm"]
+    },
+
+    "pieces": {
+      "nativeLibs": {
+        "type": "apk:native-library",
+        "description": "Crosswalk embedded runtime library (ARM)",
+        "dirs": ["native_libs/armeabi-v7a/libs"]
+      }
+    }
+  }
+]
