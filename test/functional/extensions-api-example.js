@@ -39,8 +39,9 @@ if (numArgs < 4) {
   process.exit(1);
 }
 
-var androidSDKDir = process.argv[numArgs - 2]; // third from last arg
-var xwalkAndroidDir = process.argv[numArgs - 1]; // second from last arg
+var androidSDKDir = process.argv[numArgs - 3]; // third from last arg
+var xwalkAndroidDir = process.argv[numArgs - 2]; // second from last arg
+var arch = process.argv[numArgs - 1]; // last arg
 
 // set the output directory path
 var outDir = path.join(__dirname, 'build/extensions-api-example');
@@ -55,7 +56,9 @@ var envConfig = {
   // path to the xwalk_app_template directory; you can either
   // download and unpack this manually, or use the xwalk_android_dl
   // script (part of this project; see the README for details)
-  xwalkAndroidDir: xwalkAndroidDir
+  xwalkAndroidDir: xwalkAndroidDir,
+
+  arch: arch
 };
 
 // application configuration

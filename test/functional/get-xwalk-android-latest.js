@@ -8,8 +8,8 @@
 var versionsFetcher = require('../../src/versions-fetcher')();
 var consoleLogger = require('../../src/console-logger')();
 
-var arch = 'x86';
-var channel = 'beta';
+var arch = process.argv[2] || 'x86';
+var channel = process.argv[3] || 'beta';
 
 versionsFetcher.getDownloads(arch, channel)
 .done(

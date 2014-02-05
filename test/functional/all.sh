@@ -4,31 +4,47 @@
 # found in the LICENSE-APACHE-V2 file.
 
 # perform a clean build using all functional test scripts;
-# this removes the content of the build directory first
+# this removes the content of the build directory first;
+# defaults to x86/beta, or can be invoked with custom arch/channel, e.g.:
+# androidSDKDir=/path/to/android/sdk./all.sh <arch> <channel>
+# where arch is one of "x86" or "arm" and channel is "stable", "beta"
+# or "canary" (NB arm may not be available in all channels)
 WD=`dirname $0`
-latest_version=`node get-xwalk-android-x86-latest.js`
-export xwalkAndroidDir="$WD/crosswalk-$latest_version-x86/xwalk_app_template"
+ARCH=$1
+CHANNEL=$2
+: ${ARCH:=x86}
+: ${CHANNEL:=beta}
+
+latest_version=`node get-xwalk-android-latest.js $ARCH $CHANNEL`
+
+export xwalkAndroidDir="$WD/crosswalk-$latest_version-$ARCH/xwalk_app_template"
+
+if [ ! -d $xwalkAndroidDir ] ; then
+  $WD/../../bin/xwalk_android_dl --arch $ARCH --channel $CHANNEL -o $WD
+  echo '**************************************'
+fi
+
 rm -Rf $WD/build/
 
 echo
 echo "--------------------- MAKE-APK.TEST.SH"
-$WD/make-apk.test.sh $xwalkAndroidDir
+$WD/make-apk.test.sh --arch $ARCH
 
 echo
 echo "--------------------- MAKE-APK-WITH_EXTENSIONS.TEST.SH"
-$WD/make-apk-with-extensions.test.sh
+$WD/make-apk-with-extensions.test.sh --arch $ARCH
 
 echo
 echo "--------------------- SIMPLE-API-EXAMPLE.JS"
-node $WD/simple-api-example.js $androidSDKDir $xwalkAndroidDir $WD/demo-app/
+node $WD/simple-api-example.js $androidSDKDir $xwalkAndroidDir $ARCH $WD/demo-app/
 
 echo
 echo "--------------------- EMBEDDED-API-EXAMPLE.JS"
-node $WD/embedded-api-example.js $androidSDKDir $xwalkAndroidDir $WD/demo-app/
+node $WD/embedded-api-example.js $androidSDKDir $xwalkAndroidDir $ARCH $WD/demo-app/
 
 echo
 echo "--------------------- EXTENSIONS-API-EXAMPLE.JS"
-node $WD/extensions-api-example.js $androidSDKDir $xwalkAndroidDir
+node $WD/extensions-api-example.js $androidSDKDir $xwalkAndroidDir $ARCH
 
 apks=`find $WD/build/ -name *.apk | grep -v signed | grep -v unsigned`
 
