@@ -1,0 +1,86 @@
+license: OFL
+payment: DESIGNER
+category: sans-serif
+subsets: menu,latin
+
+family: Lato
+
+designer: Łukasz Dziedzic
+
+profiledescriptionlicense: Creative Commons Attribution-ShareAlike 3.0
+profiledescriptionlicenseurl: http://creativecommons.org/licenses/by-sa/3.0/
+approved: true
+description: <p>Lato is a sanserif typeface family \
+  designed in the Summer 2010 by Warsaw-based \
+  designer Łukasz Dziedzic (“Lato” means “Summer” \
+  in Polish). In December 2010 the Lato family \
+  was published under the open-source Open Font \
+  License by his foundry tyPoland, with support \
+  from Google.</p> \
+  <p>In the last ten or so years, during which \
+  Łukasz has been designing type, most of his \
+  projects were rooted in a particular design \
+  task that he needed to solve. With Lato, it \
+  was no different. Originally, the family was \
+  conceived as a set of corporate fonts for a \
+  large client — who in the end decided to go \
+  in different stylistic direction, so the \
+  family became available for a public \
+  release.</p> \
+  <p>When working on Lato, Łukasz tried to \
+  carefully balance some potentially \
+  conflicting priorities. He wanted to create \
+  a typeface that would seem quite “transparent” \
+  when used in body text but would display some \
+  original traits when used in larger sizes. He \
+  used classical proportions (particularly visible \
+  in the uppercase) to give the letterforms familiar \
+  harmony and elegance. At the same time, he created \
+  a sleek sanserif look, which makes evident the \
+  fact that Lato was designed in 2010 — even though \
+  it does not follow any current trend.</p> \
+  <p>The semi-rounded details of the letters give \
+  Lato a feeling of warmth, while the strong \
+  structure provides stability and seriousness. \
+  “Male and female, serious but friendly. With \
+  the feeling of the Summer,” says Łukasz.</p> \
+  <p>Lato consists of five weights (plus corresponding \
+  italics), including a beautiful hairline style.</p> \
+  <p>Learn more at <a href="http://www.latofonts.com">www.latofonts.com</a>
+
+font.Lato-HairlineItalic.ttf.style: italic
+font.Lato-LightItalic.ttf.style: italic
+font.Lato-Italic.ttf.style: italic
+font.Lato-BoldItalic.ttf.style: italic
+font.Lato-BlackItalic.ttf.style: italic
+
+font.Lato-Hairline.ttf.weight: 100
+font.Lato-HairlineItalic.ttf.weight: 100
+font.Lato-Light.ttf.weight: 300
+font.Lato-LightItalic.ttf.weight: 300
+font.Lato-Regular.ttf.weight: 400
+font.Lato-Italic.ttf.weight: 400
+font.Lato-Bold.ttf.weight: 700
+font.Lato-BoldItalic.ttf.weight: 700
+font.Lato-Black.ttf.weight: 900
+font.Lato-BlackItalic.ttf.weight: 900
+
+# cd ~/src/font-optimizer; \
+# ./subset.pl -v --licensesubst="SIL OFL 1.1" \
+#  --exclude="c2sc,smcp,ordn,sups,sinf,subs,dlig,frac" \
+#  --chars="Lato" \
+# ~/googlefontdirectory/lato/Lato-Regular.{ttf,menu}; \
+# cd ~/googlefontdirectory/lato/; \
+# ~/googlefontdirectory/tools/chars/showchars.py \
+#  Lato-Regular.menu; \
+
+# mv Lato-Hai.ttf Lato-Hairline.ttf 
+# mv Lato-HaiIta.ttf Lato-HairlineItalic.ttf 
+# mv Lato-Lig.ttf Lato-Light.ttf 
+# mv Lato-LigIta.ttf Lato-LightItalic.ttf 
+# mv Lato-Reg.ttf Lato-Regular.ttf 
+# mv Lato-RegIta.ttf Lato-Italic.ttf
+# mv Lato-Bol.ttf Lato-Bold.ttf 
+# mv Lato-BolIta.ttf Lato-BoldItalic.ttf 
+# mv Lato-Bla.ttf Lato-Black.ttf 
+# mv Lato-BlaIta.ttf Lato-BlackItalic.ttf 

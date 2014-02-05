@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="utf-8">
+<title></title>
+</head>
+<body>
+<p>Hello, I am going to format the time and show you mp3 files on this device, using Java and Android APIs.</p>
+
+<script>
+var makePara = function (text) {
+  var p = document.createElement('p');
+  p.innerText = text;
+  document.body.appendChild(p);
+};
+
+var enableButtons = function () {
+  var btns = document.querySelectorAll('button');
+  for (var i = 0; i < btns.length; i += 1) {
+    btns[i].removeAttribute('disabled');
+  }
+};
+
+var disableButtonsExcept = function (btn) {
+  var btns = document.querySelectorAll('button');
+  for (var i = 0; i < btns.length; i += 1) {
+    if (btns[i] !== btn) {
+      btns[i].setAttribute('disabled', 'disabled');
+    }
+  }
+};
+
+// very basic audio element
+// fileInfo has the following fields:
+// uri, title
+var makeAudio = function (fileInfo) {
+  var p = document.createElement('p');
+
+  var audio = document.createElement('audio');
+  audio.src = fileInfo.uri;
+
+  var span = document.createElement('span');
+  span.innerText = fileInfo.title + ' by ' + fileInfo.artist + ' ';
+
+  var btn = document.createElement('button');
+  btn.innerText = 'Play';
+
+  var playing = false;
+
+  btn.addEventListener('click', function () {
+    if (playing) {
+      enableButtons();
+      audio.pause();
+      btn.innerText = 'Play';
+    }
+    else {
+      disableButtonsExcept(btn);
+      audio.play();
+      btn.innerText = 'Pause';
+    }
+
+    playing = !playing;
+  });
+
+  p.appendChild(audio);
+  p.appendChild(span);
+  p.appendChild(btn);
+
+  document.body.appendChild(p);
+};
+
+// show date and time formatted by dateTimeFormatter extension
+var now = new Date();
+var formatted = dateTimeFormatter.format('' + now.getTime());
+makePara(formatted);
+
+// echo some messages using the sync and async methods of the echo extension
+makePara(echo.echoSync('I came from a sync API call'));
+echo.echo('I came from an async API call', makePara);
+echo.echo('I came from an async API call 2', makePara);
+
+// show list of audio files provided by audioFileLister extension
+var result = audioFileLister.listFiles();
+
+if (result.success) {
+  for (var i = 0; i < result.files.length; i += 1) {
+    makeAudio(result.files[i]);
+  }
+}
+else {
+  makePara(result.error);
+}
+</script>
+</body>
+</html>

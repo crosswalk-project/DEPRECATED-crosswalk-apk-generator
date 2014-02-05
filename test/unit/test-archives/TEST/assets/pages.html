@@ -1,0 +1,106 @@
+<div id="help_dialog" class="helpdialog">
+     <div class="inner">
+       <div id="help_close" class="close"> x </div>
+       <div id="help_contents" class="contents">
+           Try to be the first to get four of your candies in a row.
+           <br><br>
+           First, choose what color your candies will be. Then choose
+           a single game, best two out of three, or best three out of five.
+           <br><br>
+           Take turns, with a friend, clicking to drop your candies down
+           the column where you want your candy to go. The first to get
+           four of their candies lined up in any direction (vertical,
+           horizontal, or diagonal) wins! If the board fills up without
+           anyone winning, everything is cleared off, and the game continues.
+           <br><br>
+           If you want to restart a game, click the X at the bottom-right
+           of the screen, and click Yes and you’ll be taken back to the
+           beginning. If you do this by mistake, click No, and your current
+           game continues.
+       </div>
+     </div>
+</div>
+<div id="players_page" class="game_page" style="display: none">
+    <div id="player_bg"></div>
+    <div id="player_player1_static">Player 1</div>
+    <div id="player_player1"><input type="text" id="player1name" size=13/></div>
+    <div id="player_player2_static">Player 2</div>
+    <div id="player_player2"><input type="text" id="player2name" size=13/></div>
+    <div id="player_text_chooseyour">Choose Your</div>
+    <div id="player_text_color">Color</div>
+    <div id="player_player1red">
+      <div class="pick red" data-player="1" data-color="1"></div>
+    </div>
+    <div id="player_player1blue">
+      <div class="pick blue" data-player="1" data-color="2"></div>
+    </div>
+    <div id="player_player1green">
+      <div class="pick green" data-player="1" data-color="3"></div>
+    </div>
+    <div id="player_player1orange">
+      <div class="pick orange" data-player="1" data-color="0"></div>
+    </div>
+    <div id="player_player2red">
+      <div class="pick red" data-player="2" data-color="1"></div>
+    </div>
+    <div id="player_player2blue">
+      <div class="pick blue" data-player="2" data-color="2"></div>
+    </div>
+    <div id="player_player2green">
+      <div class="pick green" data-player="2" data-color="3"></div>
+    </div>
+    <div id="player_player2orange">
+      <div class="pick orange" data-player="2" data-color="0"></div>
+    </div>
+    <div id="player_nextbutton" class="inactive_button">Next</div>
+</div>
+<div id="type_page" class="game_page" style="display: none">
+    <div id="type_bg"></div>
+    <div id="type_onegame_text">1 Game</div>
+    <div id="type_onegame"></div>
+    <div id="type_bestofthree_text">Best 2 of 3</div>
+    <div id="type_bestofthree"></div>
+    <div id="type_bestoffive_text">Best 3 of 5</div>
+    <div id="type_bestoffive"></div>
+    <div id="type_startbutton" class="inactive_button">Start</div>
+</div>
+<div id="game_page" class="game_page" style="display: none">
+    <div id="game_bg"></div>
+    <div id="game_player1marquee"><div id="game_player1name"></div></div>
+    <div id="game_player2marquee"><div id="game_player2name"></div></div>
+    <div id="game_player1active"></div>
+    <div id="game_player2active" style="display: none"></div>
+    <div id="game_column_selector" style="display: none"></div>
+    <div id="game_column_selector_candy" style="display: none"></div>
+    <div id="game_grid"></div>
+    <div id="game_column1"></div>
+    <div id="game_column2"></div>
+    <div id="game_column3"></div>
+    <div id="game_column4"></div>
+    <div id="game_column5"></div>
+    <div id="game_column6"></div>
+    <div id="game_column7"></div>
+    <div id="game_player1_wins">0</div>
+    <div id="game_player2_wins">0</div>
+    <div id="game_quit"></div>
+    <div id="quit_dlg" style="display: none">
+        <div id="quit_dlg_bg"></div>
+        <div id="quit_dlg_img">Start Over?</div>
+        <div id="quit_dlg_no">No</div>
+        <div id="quit_dlg_yes">Yes</div>
+    </div>
+</div>
+<div id="main_help" class="helplaunch"> ? </div>
+<div id="licensepage" style="display: none">
+    <div id="licensetext"><div id="licensescroll"></div></div>
+    <div id="licensebtnq" class="licensebtn">Back</div>
+</div>
+<div id="win_page" class="game_page" style="display: none">
+    <div id="win_bg"></div>
+    <div id="win_banner">Winner</div>
+    <div id="win_playername"></div>
+    <div id="win_playagain"></div>
+    <div id="win_startover"></div>
+    <div id="win_playagain_text">Play Again</div>
+    <div id="win_startover_text">Start Over</div>
+</div>

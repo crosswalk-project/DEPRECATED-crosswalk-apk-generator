@@ -1,0 +1,51 @@
+{
+  "name": "crosswalk-apk-generator",
+  "version": "0.0.1",
+  "description": "Generator for Crosswalk Android apk packages",
+  "main": "index.js",
+  "bin": {
+    "xwalk_apkgen": "./bin/xwalk_apkgen",
+    "xwalk_android_dl": "./bin/xwalk_android_dl"
+  },
+  "scripts": {
+    "test": "node_modules/grunt-cli/bin/grunt test",
+    "blanket": {
+      "pattern": "crosswalk-apk-generator/src/"
+    }
+  },
+  "author": "Elliot Smith <elliot.smith@intel.com>",
+  "license": "Apache v2",
+  "dependencies": {
+    "adm-zip": "~0.4.3",
+    "q": "~0.9.7",
+    "fetch": "~0.3.4",
+    "shelljs": "~0.2.6",
+    "glob": "~3.2.6",
+    "lodash": "~2.2.1",
+    "tar": "~0.1.18",
+    "mkdirp": "~0.3.5",
+    "nconf": "~0.6.8"
+  },
+  "directories": {
+    "test": "test"
+  },
+  "devDependencies": {
+    "grunt": "~0.4.1",
+    "jshint": "~2.3.0",
+    "grunt-contrib-jshint": "~0.7.1",
+    "blanket": "~1.1.5",
+    "chai": "~1.8.1",
+    "grunt-mochaccino": "~0.1.4",
+    "sinon": "~1.7.3",
+    "grunt-cli": "~0.1.11",
+    "chai-as-promised": "~4.1.0",
+    "sinon-chai": "~2.4.0",
+    "jsdoc": "https://github.com/jsdoc3/jsdoc/archive/v3.2.2.tar.gz",
+    "grunt-jsdoc": "~0.4.2",
+    "grunt-release": "~0.6.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/crosswalk-project/crosswalk-apk-generator"
+  }
+}

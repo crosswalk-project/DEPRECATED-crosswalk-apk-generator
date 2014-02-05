@@ -1,0 +1,48 @@
+<% // Copyright (c) 2014 Intel Corporation. All rights reserved.
+   // Use of this source code is governed by an Apache v2 license that can be
+   // found in the LICENSE-APACHE-V2 file. %>
+package <%= pkg %>;
+
+import android.graphics.Color;
+import android.os.Bundle;
+import android.view.View;
+import android.view.KeyEvent;
+import android.widget.TextView;
+
+import org.xwalk.app.XWalkRuntimeActivityBase;
+
+public class <%= activityClassName %> extends XWalkRuntimeActivityBase {
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        <% if (remoteDebugging) { %>
+        setRemoteDebugging(true);
+        <% } %>
+        super.onCreate(savedInstanceState);
+    }
+
+    @Override
+    public boolean onKeyUp(int keyCode, KeyEvent event) {
+        // Passdown the key-up event to runtime view.
+        if (getRuntimeView() != null &&
+                getRuntimeView().onKeyUp(keyCode, event)) {
+            return true;
+        }
+
+        return super.onKeyUp(keyCode, event);
+    }
+
+    @Override
+    protected void didTryLoadRuntimeView(View runtimeView) {
+        if (runtimeView != null) {
+            setContentView(runtimeView);
+            getRuntimeView().loadAppFromUrl("file:///android_asset/<%= appLocalPath %>");
+        }
+        else {
+            TextView msgText = new TextView(this);
+            msgText.setText(R.string.dialog_message_install_runtime_lib);
+            msgText.setTextSize(36);
+            msgText.setTextColor(Color.BLACK);
+            setContentView(msgText);
+        }
+    }
+}

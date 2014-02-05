@@ -1,0 +1,38 @@
+This contains template files used to create a skeleton for the xwalk apk builder.
+
+Generally you set the following variables to populate the skeleton:
+
+*   name: name for your app; this is also used in the activity class name for your app
+*   package: Java package name of the activity class for your app
+*   icon: location of the icon; note that if this is set, the icon is copied to res/drawable and referenced from AndroidManifest.xml
+*   appRoot: the root directory containing all the assets for the app you're packaging
+*   appLocalPath: the entry HTML file
+
+The output structure generated from this skeleton looks like this (assuming you specified name "TEST" and package "org.test"):
+
+    <root>
+      AndroidManifest.xml
+      assets/
+        <files copied from the appRoot>
+      res/
+        drawable-hdpi/
+          crosswalk.png
+        drawable-ldpi/
+          crosswalk.png
+        drawable-mdpi/
+          crosswalk.png
+        drawable-xhdpi/
+          crosswalk.png
+        values/
+          strings.xml
+      src/
+        org/
+          test/
+            TESTActivity.java
+
+The following customisations are made:
+
+*   AndroidManifest.xml requires some string replacements for package, name and icon.
+*   res/ can just be copied as is; none of the files is customised. However, if an icon is specified, this is copied to the res/drawable directory.
+*   The src/ directory sub-directory names are based on the package specified when generating the skeleton.
+*   The Java activity file name and content are customised according to the name and appLocalPath you set. In addition, is remoteDebugging is true, an extra line of code is added to turn debugging on.

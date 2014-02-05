@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<%/* Copyright (c) 2014 Intel Corporation. All rights reserved.
+
+     Use of this source code is governed by an Apache v2 license that can be
+     found in the LICENSE-APACHE-V2 file. */%>
+
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+          android:versionName="1.0.0" package="<%= pkg %>">
+
+  <application android:name="android.app.Application"
+               android:label="<%= name %>"
+               android:hardwareAccelerated="true"
+               android:icon="@drawable/<%= iconName %>">
+    <activity android:name="<%= pkg + '.' + activityClassName %>"
+              android:theme="@android:style/<%= theme %>"
+              android:configChanges="orientation|keyboardHidden|keyboard|screenSize"
+              android:label="<%= name %>">
+      <intent-filter>
+        <action android:name="android.intent.action.MAIN" />
+        <category android:name="android.intent.category.LAUNCHER" />
+      </intent-filter>
+    </activity>
+  </application>
+
+  <uses-sdk android:minSdkVersion="14"
+            android:targetSdkVersion="<%= targetSdkVersion %>" />
+  <% for (var i = 0; i < permissions.length; i += 1) { %>
+  <uses-permission android:name="android.permission.<%= permissions[i]%>"/>
+  <% } %>
+</manifest>

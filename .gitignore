@@ -1,0 +1,7 @@
+/build
+node_modules
+test/unit/build
+test/functional/build
+test/functional/crosswalk-*
+test/functional/TEST-zip/
+test/functional/TEST-tar/

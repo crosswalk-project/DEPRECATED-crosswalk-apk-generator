@@ -1,0 +1,16 @@
+{
+  "dateTimeFormatter": {
+    "class": "my.extensions.app.DateTimeFormatter",
+    "jsapi": "js/dateTimeFormatter.js"
+  },
+
+  "audioFileLister": {
+    "class": "my.extensions.app.AudioFileLister",
+    "jsapi": "js/audioFileLister.js"
+  },
+
+  "echo": {
+    "class": "my.extensions.app.Echo",
+    "jsapi": "js/echo.js"
+  }
+}

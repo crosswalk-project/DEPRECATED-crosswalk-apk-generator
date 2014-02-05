@@ -1,0 +1,1 @@
+$(document).ready(function(){var a=document.querySelector("body");scaleBody(document.getElementsByTagName("body")[0],720);var b=function(b){var c=document.createElement("script");c.setAttribute("src",b),c.setAttribute("async","async"),a.appendChild(c)};$.ajax({url:"./pages.html",success:function(a){$("body").append(a),b("./js/main.js"),b("./js/help.js"),b("./js/license.js")}})});

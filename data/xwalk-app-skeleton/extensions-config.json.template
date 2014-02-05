@@ -1,0 +1,20 @@
+<%/* Copyright (c) 2014 Intel Corporation. All rights reserved.
+
+     Use of this source code is governed by an Apache v2 license that can be
+     found in the LICENSE-APACHE-V2 file. */%>
+[
+<%
+var count = 0;
+for (var extName in extensions) {
+  if (extName !== 'prototype') {
+    if (count > 0) { %>,<% } %>{
+  "name": "<%= extName %>",
+  "jsapi": "<%= extensions[extName].jsapi %>",
+  "class": "<%= extensions[extName].class %>"
+}
+<%
+    count += 1;
+  }
+}
+%>
+]
