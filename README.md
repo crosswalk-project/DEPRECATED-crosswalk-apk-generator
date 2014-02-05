@@ -40,8 +40,10 @@ Although scripts for packaging HTML5 apps already exist in [the Crosswalk Androi
 
 So far, the APIs and scripts provided by this project replicate most of the functionality of the existing Crosswalk Android scripts, with the following exceptions:
 
-*   No support for the `--app-url` option, to wrap a Crosswalk app around a remote website
-*   No support for the
+*   No support for the `--app-url` option (to wrap a Crosswalk app around a remote website)
+*   No support for the `--app-versionCode` option
+*   No support for the `--orientation` option
+*   No support for generating an apk from a Crosswalk manifest via a `--manifest` option
 *   Icon png files are not crunched using aapt during the build, as they are by `make_apk.py`. However, the crosswalk.png images in the `res/drawable-*` directories have been optimised using [imagemin](https://github.com/ksky521/imagemin) to reduce their size. We leave it to the packager's discretion to optimise their png files if using custom icons.
 
 However, they provide several benefits over the existing Crosswalk Android scripts:
@@ -67,6 +69,8 @@ Unfortunately, building a Crosswalk Android apk still requires a lot of dependen
 *   **Apache Ant**. Again, after installation, ensure that the `ant` binary is on your PATH.
 
 *   If you want to distribute apks via an Android app store, you will need your own keystore. You can set this up using the Java `keytool` application. If you're only debugging your application, you can use the built-in xwalk-android keystore, which crosswalk-apk-generator will use by default.
+
+Note that `xwalk_android_dl` has no dependencies other than `node`.
 
 # Command-line tools
 
