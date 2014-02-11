@@ -127,6 +127,11 @@ AaptWrapper.prototype.packageResources = function (options) {
   // set output apk location
   args.push('-F ' + outApk);
 
+  // remove .* and <dir>_* from ignore-assets pattern
+  // it is set via the aapt.ignore-assets property in xwalk_app_template/scripts/ant/apk-package-resources.xml
+  // default is "!.svn:!.git:.*:<dir>_*:!CVS:!thumbs.db:!picasa.ini:!*.scc:*~"
+  args.push('--ignore-assets ' + '!.svn:!.git:!CVS:!thumbs.db:!picasa.ini:!*.scc:*~');
+
   // generate the apk file
   var cmd = this.aapt + ' package ' + args.join(' ');
 
