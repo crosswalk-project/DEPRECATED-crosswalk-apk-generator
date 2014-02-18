@@ -42,7 +42,7 @@ The `src/xwalk-apkgen.js` module is a full example of how to use the API to buil
 
 First, import the crosswalk-apk-generator API and set an output directory for the build:
 
-    var Api = require('../../index');
+    var Api = require('crosswalk-apk-generator');
     var outDir = 'build';
 
 The `Locations` object contains information about all the paths required for build artefacts, relative to the `outDir` used to construct it.
