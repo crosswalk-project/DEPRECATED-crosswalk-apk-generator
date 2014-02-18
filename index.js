@@ -16,6 +16,7 @@ module.exports = {
   Locations: require('./src/locations'),
   PathHelpers: require('./src/path-helpers'),
   Unpacker: require('./src/unpacker'),
+  VersionsFetcher: require('./src/versions-fetcher'),
   Wrappers: {
     Aapt: require('./src/wrappers/aapt-wrapper'),
     ApkGen: require('./src/wrappers/apk-gen-wrapper'),
