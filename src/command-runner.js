@@ -23,7 +23,7 @@ var Q = require('q');
 var CommandRunner = function (verbose, logger, execFn) {
   // enable this function to be used as a factory without "new"
   if (!(this instanceof CommandRunner)) {
-    return new CommandRunner(verbose);
+    return new CommandRunner(verbose, logger, execFn);
   }
 
   this.verbose = !!verbose;
