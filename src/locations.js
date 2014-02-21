@@ -70,7 +70,7 @@ var Locations = function (name, pkg, arch, destDir) {
    * @type string
    * @instance
    */
-  this.destDir = destDir || path.join(require('os').tmpdir(), 'xwalk-apk-gen');
+  this.destDir = path.resolve(destDir) || path.join(require('os').tmpdir(), 'xwalk-apk-gen');
 
   // jars from the xwalk_app_template are added by the Env at build time
   // to this.buildJars and this.jars
