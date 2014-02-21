@@ -52,7 +52,8 @@ describe('AaptWrapper', function () {
     // the command which we expect
     var expected = '/my/aapt package -m -M AndroidManifest.xml ' +
                    '-A /dest/assets/ -f --auto-add-overlay -S /dest/res ' +
-                   '-I myjars/one.jar -I myjars/two.jar -F /dest/mypackage.apk';
+                   '-I myjars/one.jar -I myjars/two.jar -F /dest/mypackage.apk ' +
+                   '--ignore-assets !.svn:!.git:!CVS:!thumbs.db:!picasa.ini:!*.scc:*~';
 
     var spy = sinon.spy(stubCommandRunner, 'run');
 
