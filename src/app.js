@@ -235,6 +235,10 @@ App.prototype.configure = function (config) {
     errors.push('name must be set');
   }
 
+  if (!config.version) {
+    errors.push('version must be set');
+  }
+
   if (!config.pkg) {
     errors.push('pkg must be set');
   }
