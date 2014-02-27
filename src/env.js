@@ -494,6 +494,7 @@ Env.prototype.build = function (app, locations) {
   // icon name, target SDK version, package etc.
   var appData = {
     name: app.name,
+    version: app.version,
     sanitisedName: app.sanitisedName,
     pkg: app.pkg,
     icon: app.icon,
