@@ -70,7 +70,9 @@ var appConfig = {
   // relative path from appRoot of the entry HTML file for your app
   appLocalPath: 'index.html',
 
-  embedded: true
+  embedded: true,
+
+  version: '1.0.0'
 };
 
 // create a promise for a configured Env object

@@ -50,7 +50,8 @@ describe('AppSkeleton', function () {
     remoteDebugging: true,
     targetSdkVersion: 19,
     javaSrcDirs: [],
-    extensionsJsFiles: []
+    extensionsJsFiles: [],
+    version: '1.0.0'
   };
 
   // Locations object pointing at the output directory

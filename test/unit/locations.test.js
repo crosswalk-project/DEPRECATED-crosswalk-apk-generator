@@ -18,10 +18,12 @@ var app = {
   activityClassName: 'AppOneActivity'
 };
 
+var tmpdir = (os.tmpdir || os.tmpDir)();
+
 describe('locations', function () {
   it('should set default destination to tmp dir for os', function () {
     var locations = Locations(app.sanitisedName, app.pkg, 'x86');
-    locations.destDir.should.eql(path.join(os.tmpdir(), 'xwalk-apk-gen'));
+    locations.destDir.should.eql(path.join(tmpdir, 'xwalk-apk-gen'));
   });
 
   it('should set destination dir when passed to constructor', function () {

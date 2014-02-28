@@ -20,4 +20,4 @@ WD=`dirname $0`
 OUT_DIR=$WD/build/make_apk_shared
 
 # make the apk
-$WD/../../bin/xwalk_apkgen -o $OUT_DIR --appRoot=$WD/demo-app --appLocalPath=index.html --name "X make apk shared test sh" --package "make.apk" --icon "$WD/demo-app/icon.png" --mode "shared" --keystore $WD/custom-keystore/mycerts.jks --keystoreAlias my --keystorePassword demodemo --remoteDebugging $*
+$WD/../../bin/xwalk_apkgen -o $OUT_DIR --appRoot=$WD/demo-app --appLocalPath=index.html --name "X make apk shared test sh" --package "make.apk" --icon "$WD/demo-app/icon.png" --mode "shared" --keystore $WD/custom-keystore/mycerts.jks --keystoreAlias my --keystorePassword demodemo --remoteDebugging --version 1.0.0 $*

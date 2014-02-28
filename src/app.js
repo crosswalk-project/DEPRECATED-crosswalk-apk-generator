@@ -160,7 +160,8 @@ App.CONFIG_DEFAULTS = {
   jars: [],
   javaSrcDirs: [],
   extensions: null,
-  embedded: true
+  embedded: true,
+  version: null
 };
 
 /**
