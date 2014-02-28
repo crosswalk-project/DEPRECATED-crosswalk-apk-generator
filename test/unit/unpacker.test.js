@@ -57,7 +57,7 @@ describe('Unpacker', function () {
   });
 
   it('should unpack non-tarball gz files', function (done) {
-    this.timeout(10000);
+    this.timeout(30000);
     var expectedTextFile = path.join(outDir, 'TEST.txt');
     var expectedContent = 'expected content is here\n';
 
@@ -81,7 +81,7 @@ describe('Unpacker', function () {
   });
 
   it('should unpack zip files', function (done) {
-    this.timeout(10000);
+    this.timeout(30000);
     var unpackedDir = path.join(outDir, 'TEST-zip');
     fsHelpers.cleanDir(unpackedDir);
 
@@ -100,7 +100,7 @@ describe('Unpacker', function () {
   });
 
   it('should unpack tgz files', function (done) {
-    this.timeout(10000);
+    this.timeout(30000);
     var unpackedDir = path.join(outDir, 'TEST-tgz');
     fsHelpers.cleanDir(unpackedDir);
 
@@ -119,7 +119,7 @@ describe('Unpacker', function () {
   });
 
   it('should unpack tar files', function (done) {
-    this.timeout(10000);
+    this.timeout(30000);
     var unpackedDir = path.join(outDir, 'TEST-tar');
     fsHelpers.cleanDir(unpackedDir);
 
