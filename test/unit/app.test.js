@@ -130,7 +130,8 @@ describe('App', function () {
     var config = {
       name: 'foo',
       pkg: 'testone',
-      appUrl: 'http://foo.bar'
+      appUrl: 'http://foo.bar',
+      version: '1.0.0'
     };
 
     testException(
@@ -147,7 +148,8 @@ describe('App', function () {
     var config = {
       name: 'foo',
       pkg: 'testone.',
-      appUrl: 'http://foo.bar'
+      appUrl: 'http://foo.bar',
+      version: '1.0.0'
     };
 
     testException(
@@ -164,7 +166,8 @@ describe('App', function () {
     var config = {
       name: 'foo',
       pkg: 'testone.1', // this is the important property
-      appUrl: 'http://foo.bar'
+      appUrl: 'http://foo.bar',
+      version: '1.0.0'
     };
 
     testException(
@@ -181,7 +184,8 @@ describe('App', function () {
     var config = {
       name: 'foo',
       pkg: '1.testone', // this is the important property
-      appUrl: 'http://foo.bar'
+      appUrl: 'http://foo.bar',
+      version: '1.0.0'
     };
 
     testException(
@@ -197,7 +201,8 @@ describe('App', function () {
       name: 'test',
       pkg: 'pkg.one',
       appRoot: '/test',
-      appLocalPath: 'index.html'
+      appLocalPath: 'index.html',
+      version: '1.0.0'
     };
 
     App(config, {finder: finder})
@@ -242,7 +247,8 @@ describe('App', function () {
       pkg: 'pkg. \ / : * < >>> < ????   \'world    """"<>" | - ""   !.one',
       appRoot: '/test',
       appLocalPath: 'index.html',
-      fullscreen: true
+      fullscreen: true,
+      version: '1.0.0'
     };
 
     App(config, {finder: finder})
