@@ -31,6 +31,10 @@ echo "--------------------- MAKE-APK.TEST.SH"
 $WD/make-apk.test.sh --arch $ARCH
 
 echo
+echo "--------------------- MAKE-APK-SHARED.TEST.SH"
+$WD/make-apk-shared.test.sh --arch $ARCH
+
+echo
 echo "--------------------- MAKE-APK-WITH_EXTENSIONS.TEST.SH"
 $WD/make-apk-with-extensions.test.sh --arch $ARCH
 
