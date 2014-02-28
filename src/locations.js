@@ -6,6 +6,8 @@
  * found in the LICENSE-APACHE-V2 file. */
 
 var path = require('path');
+var os = require('os');
+var tmpdir = (os.tmpdir || os.tmpDir)();
 
 // hash function to create a unique directory name for extension js files
 var counter = 1;
@@ -75,7 +77,7 @@ var Locations = function (name, pkg, arch, destDir) {
     this.destDir = path.resolve(destDir);
   }
   else {
-    this.destDir = path.join(require('os').tmpdir(), 'xwalk-apk-gen');
+    this.destDir = path.join(tmpdir, 'xwalk-apk-gen');
   }
 
   // jars from the xwalk_app_template are added by the Env at build time
