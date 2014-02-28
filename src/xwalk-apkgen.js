@@ -149,6 +149,11 @@ var cliOpts = {
     section: 'Application (app)'
   },
 
+  'version': {
+    describe: 'application version string (e.g. "1.0.0")',
+    section: 'Application (app)'
+  },
+
   // app optional
   'icon': {
     describe: 'path to the icon file for the application',
