@@ -191,8 +191,7 @@ var cliOpts = {
 
   'embedded': {
     describe: 'set to true to enable embedded mode',
-    section: 'Application (app)',
-    default: App.CONFIG_DEFAULTS.embedded
+    section: 'Application (app)'
   },
 
   // help
@@ -254,8 +253,10 @@ _.each(App.CONFIG_DEFAULTS, function (value, key) {
 appConfig.extensions = extensions;
 
 // set the mode for the app
-appConfig.embedded = (nconf.get('embedded') ||
-                      nconf.get('mode') === 'embedded');
+appConfig.embedded = nconf.get('embedded');
+if (appConfig.embedded === undefined) {
+  appConfig.embedded = (nconf.get('mode') === 'embedded');
+}
 
 // get properties for Env
 var envConfig = {};
