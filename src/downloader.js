@@ -84,9 +84,9 @@ Downloader.prototype.download = function (downloadUrl, outDir) {
 
   // notify each time the percentage downloaded changes
   fetcher.on('data', function (data) {
-    downloaded += parseInt(data.length);
+    downloaded += parseInt(data.length, 10);
 
-    var percent = parseInt((downloaded / contentLength) * 100);
+    var percent = parseInt((downloaded / contentLength) * 100, 10);
 
     if (percent > lastNotifiedPercent) {
       lastNotifiedPercent = percent;
