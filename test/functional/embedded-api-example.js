@@ -73,7 +73,9 @@ var appConfig = {
   // make an embedded mode apk
   embedded: true,
 
-  remoteDebugging: true
+  remoteDebugging: true,
+
+  version: '1.0.0'
 };
 
 // create a promise for a configured Env object
