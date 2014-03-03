@@ -17,7 +17,7 @@
 var path = require('path');
 
 var usage = 'Usage:\nnode ' + path.basename(process.argv[1]) +
-            ' <android SDK dir> <xwalk app template dir> <HTML5 app root>'
+            ' <android SDK dir> <xwalk app template dir> <arch> <HTML5 app root>'
 
 // load the crosswalk-apk-generator API
 var Api = require('../../index');
