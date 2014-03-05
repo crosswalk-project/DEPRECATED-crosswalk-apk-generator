@@ -160,7 +160,7 @@ var locateXwalkPieces = function (finder, config) {
   // extra components required for embedded mode
   if (!config.xwalkEmbeddedJar) {
     xwalkPieces.xwalkEmbeddedJar = {
-      files: ['xwalk_core_embedded.dex.jar'],
+      files: ['xwalk_core_embedded.dex.jar', 'xwalk_runtime_embedded.dex.jar'],
       guessDirs: ['libs']
     };
   }
