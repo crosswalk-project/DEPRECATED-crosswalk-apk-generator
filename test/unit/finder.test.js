@@ -251,9 +251,9 @@ describe('Finder', function () {
                                        .and.notify(done);
     });
 
-    it('should resolve to true if path exists and is a file', function (done) {
+    it('should resolve to path if path exists and is a file', function (done) {
       var existingFilePath = path.join(root, 'bar', 'test.txt');
-      finder.checkIsFile(existingFilePath).should.become(true)
+      finder.checkIsFile(existingFilePath).should.become(existingFilePath)
                                           .and.notify(done);
     });
 
@@ -279,9 +279,9 @@ describe('Finder', function () {
                                        .and.notify(done);
     });
 
-    it('should resolve to true if path exists and is a directory', function (done) {
+    it('should resolve to the path if path exists and is a directory', function (done) {
       var existingFilePath = path.join(root, 'bar');
-      finder.checkIsDirectory(existingFilePath).should.become(true)
+      finder.checkIsDirectory(existingFilePath).should.become(existingFilePath)
                                                .and.notify(done);
     });
 

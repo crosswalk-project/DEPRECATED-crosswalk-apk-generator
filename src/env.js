@@ -77,14 +77,16 @@ var locateFiles = function (finder, config) {
 var locateAndroidPieces = function (finder, config) {
   var androidPieces = {};
 
-  // get the Android version for the API level
+  // get the Android version for the API level;
+  // this is used to find the tools where the directory
+  // name is android-N.M rather than N.M.P
   var androidVersion = apiVersionToAndroidVersion[config.androidAPILevel];
 
   if (!config.aapt) {
     androidPieces.aapt = {
       exe: 'aapt',
       guessDirs: [
-        path.join('build-tools', config.androidAPIVersion),
+        path.join('build-tools', config.androidAPILevel + '*'),
         path.join('build-tools', 'android-' + androidVersion)
       ]
     };
@@ -94,7 +96,7 @@ var locateAndroidPieces = function (finder, config) {
     androidPieces.dx = {
       exe: 'dx',
       guessDirs: [
-        path.join('build-tools', config.androidAPIVersion),
+        path.join('build-tools', config.androidAPILevel + '*'),
         path.join('build-tools', 'android-' + androidVersion)
       ]
     };
@@ -124,7 +126,7 @@ var locateAndroidPieces = function (finder, config) {
   }
 
   // we only do the lookup if any pieces haven't been specified
-  var androidPiecesPromise = Q({});
+  var androidPiecesPromise = Q();
   var needAndroidPieces = _.keys(androidPieces).length;
 
   if (needAndroidPieces) {
@@ -262,12 +264,8 @@ var locateXwalkPieces = function (finder, config) {
  * xwalk-android distribution, containing the jar files and
  * xwalk_app_template required to build an apk for Crosswalk; see README.md
  * for more details about how to download this
- * @param {string} [config.androidAPIVersion=Env.CONFIG_DEFAULTS.androidAPIVersion] -
- * Android API level; this should match a directory name under
- * &lt;android SDK dir&gt;/build-tools/
- * @param {string} [config.androidAPILevel=derived from the major version
- * of the androidAPIVersion] - if the androidAPIVersion is '19.0.0', this
- * is set to 19
+ * @param {string} [config.androidAPILevel=Env.CONFIG_DEFAULTS.androidAPILevel]] -
+ * Android API level to target (e.g. 18, 19); also used to find Android tools
  * @param {string} [config.java="java"] - location of java binary; NB this
  * should be a binary from the Sun Java distribution, not GNU Java
  * @param {string} [config.javac="javac"] - location of javac binary (part
@@ -386,7 +384,7 @@ var Env = function (config, deps) {
  * @property {string} sourceJavaVersion - set to "1.5"
  * @property {string} targetJavaVersion - set to "1.5"
  * @property {string} arch - set to "arm"
- * @property {string} androidAPIVersion - "19.0.0"
+ * @property {string} androidAPILevel - "19"
  * @property {string} keystore - set to xwalk-android keystore
  * @property {string} keystoreAlias - set to "xwalkdebugkey"
  * @property {string} keystorePassword - set to "xwalkdebug"
@@ -402,8 +400,7 @@ Env.CONFIG_DEFAULTS = {
   arch: 'x86',
 
   androidSDKDir: null,
-  androidAPIVersion: '19.0.0',
-  androidAPILevel: null,
+  androidAPILevel: 19,
 
   // we can hopefully work these out from the androidSDK location
   dx: null,
@@ -561,9 +558,6 @@ Env.prototype.configure = function (config) {
   // fill any missing keys in config
   _.defaults(config, Env.CONFIG_DEFAULTS);
 
-  // derive API major version
-  config.androidAPILevel = parseInt(config.androidAPIVersion, 10);
-
   // check there are no keys in config that aren't in defaults,
   // and that config has all the required keys
   var configKeys = _.keys(config);
@@ -588,6 +582,9 @@ Env.prototype.configure = function (config) {
                          'must be specified'));
     return promise;
   }
+
+  // ensure androidAPILevel is an integer
+  config.androidAPILevel = parseInt(config.androidAPILevel, 10);
 
   // check that the two main directories exist
   Q.all([

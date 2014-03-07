@@ -38,7 +38,8 @@ var getLikelyBinaryNames = function (name, platform) {
  * rejected, the master promise is rejected with the last error
  * that occurred.
  *
- * returns the master promise
+ * returns the master promise; this resolves to the result of the "winning"
+ * promise
  */
 var anyResolves = function (promiseFuncs, lastError) {
   var dfd = Q.defer();
@@ -66,7 +67,10 @@ var anyResolves = function (promiseFuncs, lastError) {
 };
 
 // method: 'isDirectory' or 'isFile'; method on the Stats
-// object to call to check the type of file
+// object to call to check the type of file;
+// resolves to the path or to false if the path was not found or
+// the found item was of the wrong type (e.g. it was a file when a
+// directory was expected)
 var checkPath = function (pathToTest, fs, method) {
   var dfd = Q.defer();
   var promise = dfd.promise;
@@ -78,22 +82,28 @@ var checkPath = function (pathToTest, fs, method) {
 
   pathToTest = path.resolve(pathToTest);
 
-  fs.exists(pathToTest, function (exists) {
-    if (exists) {
-      fs.stat(pathToTest, function (err, stats) {
+  glob(pathToTest, function (err, found) {
+    if (err) {
+      dfd.reject(err);
+    }
+    else if (found.length === 0) {
+      dfd.resolve(false);
+    }
+    else {
+      // take the alphabetically-last item from the found array
+      var alphaLast = _.last(found);
+
+      fs.stat(alphaLast, function (err, stats) {
         if (err) {
           dfd.reject(err);
         }
         else if (stats[method]()) {
-          dfd.resolve(true);
+          dfd.resolve(alphaLast);
         }
         else {
           dfd.resolve(false);
         }
       });
-    }
-    else {
-      dfd.resolve(false);
     }
   });
 
@@ -112,7 +122,7 @@ var makeGuessPathFn = function (checkIsFile, guessPath) {
     .done(
       function (result) {
         if (result) {
-          dfd.resolve(guessPath);
+          dfd.resolve(result);
         }
         else {
           dfd.reject();
