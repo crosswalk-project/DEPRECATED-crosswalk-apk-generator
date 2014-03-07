@@ -11,8 +11,10 @@ var Q = require('q');
 var glob = require('glob');
 var _ = require('lodash');
 
-var fixSeparators = require('./path-helpers').fixSeparators;
-var stripTrailingSeparators = require('./path-helpers').stripTrailingSeparators;
+var pathHelpers = require('./path-helpers');
+var fixSeparators = pathHelpers.fixSeparators;
+var apiVersionToAndroidVersion = pathHelpers.apiVersionToAndroidVersion;
+var stripTrailingSeparators = pathHelpers.stripTrailingSeparators;
 
 /*
  * Create an array of likely names for a binary for a particular
@@ -108,32 +110,6 @@ var checkPath = function (pathToTest, fs, method) {
   });
 
   return promise;
-};
-
-// make a function which returns a promise that resolves to
-// guessPath if guessPath is a file, or rejects if it isn't
-// checkIsFile: function to path guessPath to, which will resolve
-// to true if the path exists and is a file, or false otherwise
-var makeGuessPathFn = function (checkIsFile, guessPath) {
-  return function () {
-    var dfd = Q.defer();
-
-    checkIsFile(guessPath)
-    .done(
-      function (result) {
-        if (result) {
-          dfd.resolve(result);
-        }
-        else {
-          dfd.reject();
-        }
-      },
-
-      dfd.reject
-    );
-
-    return dfd.promise;
-  };
 };
 
 // make a function which returns a promise that resolves to a single
@@ -368,6 +344,80 @@ Finder.prototype.findDirectory = function (rootDir, dir) {
   return dfd.promise;
 };
 
+// for an array of paths, sort the array by the name of the parent
+// directory of each file, as it corresponds to an Android version number;
+//
+// for example:
+//
+// files = ['build-tools/19.0.1/aapt', 'build-tools/19.0.0/aapt']
+// will return
+// ['build-tools/19.0.0/aapt', 'build-tools/19.0.1/aapt']
+//
+// or:
+//
+// files = ['build-tools/19.0.1/aapt', 'build-tools/android-4.4']
+// will return
+// ['build-tools/android-4.4/aapt', 'build-tools/19.0.1/aapt']
+// as 4.4 is treated as '19.0.0'
+//
+// NB paths should contain paths which have forward slashes for the
+// path separators (e.g. as returned by glob())
+var sortByVersion = function (paths) {
+  // first map to objects which keep the original path as well
+  // as the version
+  var pathsWithVersions = _.map(paths, function (aPath) {
+    // get the version: it's the part of the path before the
+    // basename (the last path element); if it starts with 'android-',
+    // map the part after android- to an API level + '.0.0'
+    var version = _.last(path.dirname(aPath).split('/'));
+
+    if (/android-/.test(version)) {
+      version = apiVersionToAndroidVersion(version.replace('android-'));
+      version += '.0.0';
+    }
+
+    return {
+      path: aPath,
+      version: version
+    };
+  });
+
+  // then sort them
+  var sorted = _.sortBy(pathsWithVersions, 'version');
+
+  // then map back to an array of path strings
+  return _.pluck(sorted, 'path');
+};
+
+// return a function which will attempt to find guessPath,
+// returning a promise which resolves to the correct path if it is found
+var makeGuessPathFn = function (guessPath, versionSort) {
+  return function () {
+    var dfd = Q.defer();
+
+    glob(guessPath, function (err, results) {
+      if (err) {
+        dfd.reject(err);
+      }
+      else if (results.length === 0) {
+        dfd.reject();
+      }
+      else {
+        if (versionSort) {
+          results = sortByVersion(results);
+        }
+
+        // fix the separators (glob() always returns forwards slashes)
+        var result = fixSeparators(_.last(results));
+
+        dfd.resolve(result);
+      }
+    });
+
+    return dfd.promise;
+  };
+};
+
 /**
  * <p>Try to find a file by guessing then by globbing.</p>
  *
@@ -397,6 +447,9 @@ Finder.prototype.findDirectory = function (rootDir, dir) {
  * @param {string[]} guessDirs - most likely directories under rootDir
  * where file will be located
  * @param {string[]} possibleNames - possible names for the file
+ * @param {boolean} versionSort - if true, and multiple possible file
+ * matches are returned, sort by version of the parent directory using
+ * semver; if false, just take the alphabetically-last item
  *
  * @returns {external:Promise} resolves to the verified file location
  * (if found) or is rejected with an error if the search fails (either
@@ -404,7 +457,7 @@ Finder.prototype.findDirectory = function (rootDir, dir) {
  * potential matching files were found); the returned error is the
  * last error recorded while searching for the files
  */
-Finder.prototype.findFile = function (rootDir, guessDirs, possibleNames) {
+Finder.prototype.findFile = function (rootDir, guessDirs, possibleNames, versionSort) {
   var self = this;
   var dfd = Q.defer();
 
@@ -418,7 +471,7 @@ Finder.prototype.findFile = function (rootDir, guessDirs, possibleNames) {
       var guessPath = path.join(rootDir, guessDirs[j], possibleNames[i]);
 
       // make a function which tries the guessPath
-      var guessFn = makeGuessPathFn(this.checkIsFile.bind(this), guessPath);
+      var guessFn = makeGuessPathFn(guessPath, versionSort);
 
       tries.push(guessFn);
     }
@@ -576,7 +629,7 @@ Finder.prototype.locatePieces = function (rootDir, pieces) {
       var files = properties.files ||
                   getLikelyBinaryNames(properties.exe, self.platform);
 
-      promise = self.findFile(rootDir, guessDirs, files);
+      promise = self.findFile(rootDir, guessDirs, files, properties.versionSort);
 
       promise.then(
         function (filePath) {
