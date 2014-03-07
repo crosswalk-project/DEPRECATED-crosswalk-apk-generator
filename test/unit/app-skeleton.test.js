@@ -51,7 +51,8 @@ describe('AppSkeleton', function () {
     targetSdkVersion: 19,
     javaSrcDirs: [],
     extensionsJsFiles: [],
-    version: '1.0.0'
+    version: '1.0.0',
+    orientation: null
   };
 
   // Locations object pointing at the output directory

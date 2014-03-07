@@ -86,6 +86,10 @@ var replaceInvalidChars = function (value, mode) {
  * set to true to enable remote debugging on the device
  * @param {boolean} [config.fullscreen=App.CONFIG_DEFAULTS.fullscreen] -
  * set to false to run the app in windowed mode
+ * @param {boolean} [config.orientation=undefined] - android:screenOrientation
+ * setting; see
+ * http://developer.android.com/guide/topics/manifest/activity-element.html#screenOrientation
+ * for valid values
  * @param {string} [config.theme=App.CONFIG_DEFAULTS.theme] - Android
  * theme string, for use in AndroidManifest.xml; this should NOT be
  * set to a fullscreen theme, as this is added automatically if
@@ -161,7 +165,8 @@ App.CONFIG_DEFAULTS = {
   javaSrcDirs: [],
   extensions: null,
   embedded: true,
-  version: null
+  version: null,
+  orientation: null
 };
 
 /**
