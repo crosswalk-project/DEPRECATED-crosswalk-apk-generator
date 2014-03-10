@@ -10,7 +10,7 @@ var os = require('os');
 var path = require('path');
 
 var Locations = require('../../src/locations');
-var fixsep = require('../../src/path-helpers').fixSeparators;
+var pr = path.resolve;
 
 var app = {
   sanitisedName: 'AppOne',
@@ -28,7 +28,7 @@ describe('locations', function () {
 
   it('should set destination dir when passed to constructor', function () {
     var locations = Locations(app.sanitisedName, app.pkg, 'x86', '/out');
-    locations.destDir.should.eql('/out');
+    locations.destDir.should.eql(pr('/out'));
   });
 
   it('configure() should throw an error for missing parameters', function () {
@@ -57,28 +57,28 @@ describe('locations', function () {
   it('should set destination paths when configured for an app', function () {
     var locations = Locations(app.sanitisedName, app.pkg, 'x86', '/out');
 
-    locations.classesDir.should.eql(fixsep('/out/classes'));
-    locations.dexFile.should.eql(fixsep('/out/classes.dex'));
+    locations.classesDir.should.eql(pr('/out/classes'));
+    locations.dexFile.should.eql(pr('/out/classes.dex'));
 
-    locations.resPackageApk.should.eql(fixsep('/out/AppOne.x86.ap_'));
-    locations.unsignedApk.should.eql(fixsep('/out/AppOne-unsigned.x86.apk'));
-    locations.signedApk.should.eql(fixsep('/out/AppOne-signed.x86.apk'));
-    locations.finalApk.should.eql(fixsep('/out/AppOne.x86.apk'));
+    locations.resPackageApk.should.eql(pr('/out/AppOne.x86.ap_'));
+    locations.unsignedApk.should.eql(pr('/out/AppOne-unsigned.x86.apk'));
+    locations.signedApk.should.eql(pr('/out/AppOne-signed.x86.apk'));
+    locations.finalApk.should.eql(pr('/out/AppOne.x86.apk'));
 
-    locations.resDir.should.eql(fixsep('/out/res'));
-    locations.assetsDir.should.eql(fixsep('/out/assets'));
-    locations.srcDir.should.eql(fixsep('/out/src'));
+    locations.resDir.should.eql(pr('/out/res'));
+    locations.assetsDir.should.eql(pr('/out/assets'));
+    locations.srcDir.should.eql(pr('/out/src'));
 
-    locations.javaPackageDir.should.eql(fixsep('/out/src/org01/test'));
+    locations.javaPackageDir.should.eql(pr('/out/src/org01/test'));
 
-    locations.androidManifest.should.eql(fixsep('/out/AndroidManifest.xml'));
+    locations.androidManifest.should.eql(pr('/out/AndroidManifest.xml'));
 
-    locations.defaultDrawableDir.should.eql(fixsep('/out/res/drawable'));
+    locations.defaultDrawableDir.should.eql(pr('/out/res/drawable'));
     locations.drawableDirs.should.eql({
-      xhdpi: fixsep('/out/res/drawable-xhdpi'),
-      hdpi: fixsep('/out/res/drawable-hdpi'),
-      mdpi: fixsep('/out/res/drawable-mdpi'),
-      ldpi: fixsep('/out/res/drawable-ldpi')
+      xhdpi: pr('/out/res/drawable-xhdpi'),
+      hdpi: pr('/out/res/drawable-hdpi'),
+      mdpi: pr('/out/res/drawable-mdpi'),
+      ldpi: pr('/out/res/drawable-ldpi')
     });
   });
 });
