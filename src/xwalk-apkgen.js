@@ -91,11 +91,11 @@ var cliOpts = {
   },
 
   // env optional
-  'androidAPIVersion': {
-    alias: 'android-api-version',
-    describe: 'version of the Android API to use',
+  'androidAPILevel': {
+    alias: 'android-api-level',
+    describe: 'level of the Android API to use (e.g. 18, 19)',
     section: 'Environment (env)',
-    default: Env.CONFIG_DEFAULTS.androidAPIVersion
+    default: Env.CONFIG_DEFAULTS.androidAPILevel
   },
 
   'keystore': {

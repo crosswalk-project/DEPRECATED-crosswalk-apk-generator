@@ -9,6 +9,8 @@ var Q = require('q');
 var path = require('path');
 var _ = require('lodash');
 
+var stripTrailingSeparators = require('./path-helpers').stripTrailingSeparators;
+
 var BuildTools = require('./build-tools');
 
 // map from Android API levels to version numbers; this is used
@@ -18,10 +20,58 @@ var BuildTools = require('./build-tools');
 var apiVersionToAndroidVersion = {
   19: '4.4', // kitkat
   18: '4.3', // jelly bean MR2
-  17: '4.2', // jelly bean MR1,
+  17: '4.2', // jelly bean MR1
   16: '4.1', // jelly bean
   15: '4.0.3', // ice cream sandwich MR1
   14: '4.0' // ice cream sandwich
+};
+
+// for an array of paths, sort the array by the name of the parent
+// directory of each file, as it corresponds to an Android version number
+//
+// for example:
+//
+// files = ['build-tools/19.0.1/aapt', 'build-tools/19.0.0/aapt']
+// will return
+// ['build-tools/19.0.0/aapt', 'build-tools/19.0.1/aapt']
+//
+// and:
+//
+// files = ['build-tools/19.0.1/aapt', 'build-tools/android-4.4']
+// will return
+// ['build-tools/android-4.4/aapt', 'build-tools/19.0.1/aapt']
+// as 4.4 is treated as '19.0.0'
+//
+// NB paths should contain paths which have forward slashes for the
+// path separators (e.g. as returned by glob())
+var selectLatestVersion = function (paths) {
+  // first map to objects which keep the original path as well
+  // as the version
+  var pathsWithVersions = _.map(paths, function (aPath) {
+    // get the version: it's the part of the path before the
+    // basename (the last path element); if it starts with 'android-',
+    // map the part after android- to an API level + '.0.0'
+    var version = _.last(path.dirname(aPath).split('/'));
+
+    if (/android-/.test(version)) {
+      version = apiVersionToAndroidVersion[version.replace('android-')];
+      version += '.0.0';
+    }
+
+    return {
+      path: aPath,
+      version: version
+    };
+  });
+
+  // then sort them
+  var sorted = _.sortBy(pathsWithVersions, 'version');
+
+  // then map back to an array of path strings
+  paths = _.pluck(sorted, 'path');
+
+  // return the last one
+  return _.last(paths);
 };
 
 /*
@@ -75,30 +125,12 @@ var locateFiles = function (finder, config) {
  *   android.jar: "platforms/android-18/android.jar"
  */
 var locateAndroidPieces = function (finder, config) {
-  var androidPieces = {};
-
-  // get the Android version for the API level
+  // get the Android version for the API level;
+  // this is used to find the tools where the directory
+  // name is android-N.M rather than N.M.P
   var androidVersion = apiVersionToAndroidVersion[config.androidAPILevel];
 
-  if (!config.aapt) {
-    androidPieces.aapt = {
-      exe: 'aapt',
-      guessDirs: [
-        path.join('build-tools', config.androidAPIVersion),
-        path.join('build-tools', 'android-' + androidVersion)
-      ]
-    };
-  }
-
-  if (!config.dx) {
-    androidPieces.dx = {
-      exe: 'dx',
-      guessDirs: [
-        path.join('build-tools', config.androidAPIVersion),
-        path.join('build-tools', 'android-' + androidVersion)
-      ]
-    };
-  }
+  var androidPieces = {};
 
   if (!config.anttasksJar) {
     androidPieces.anttasksJar = {
@@ -123,8 +155,31 @@ var locateAndroidPieces = function (finder, config) {
     };
   }
 
+  // aapt and dx require sorting of the returned values by Android version
+  if (!config.aapt) {
+    androidPieces.aapt = {
+      exe: 'aapt',
+      guessDirs: [
+        path.join('build-tools', config.androidAPILevel + '*'),
+        path.join('build-tools', 'android-' + androidVersion)
+      ],
+      filter: selectLatestVersion
+    };
+  }
+
+  if (!config.dx) {
+    androidPieces.dx = {
+      exe: 'dx',
+      guessDirs: [
+        path.join('build-tools', config.androidAPILevel + '*'),
+        path.join('build-tools', 'android-' + androidVersion)
+      ],
+      filter: selectLatestVersion
+    };
+  }
+
   // we only do the lookup if any pieces haven't been specified
-  var androidPiecesPromise = Q({});
+  var androidPiecesPromise = Q();
   var needAndroidPieces = _.keys(androidPieces).length;
 
   if (needAndroidPieces) {
@@ -262,12 +317,8 @@ var locateXwalkPieces = function (finder, config) {
  * xwalk-android distribution, containing the jar files and
  * xwalk_app_template required to build an apk for Crosswalk; see README.md
  * for more details about how to download this
- * @param {string} [config.androidAPIVersion=Env.CONFIG_DEFAULTS.androidAPIVersion] -
- * Android API level; this should match a directory name under
- * &lt;android SDK dir&gt;/build-tools/
- * @param {string} [config.androidAPILevel=derived from the major version
- * of the androidAPIVersion] - if the androidAPIVersion is '19.0.0', this
- * is set to 19
+ * @param {string} [config.androidAPILevel=Env.CONFIG_DEFAULTS.androidAPILevel]] -
+ * Android API level to target (e.g. 18, 19); also used to find Android tools
  * @param {string} [config.java="java"] - location of java binary; NB this
  * should be a binary from the Sun Java distribution, not GNU Java
  * @param {string} [config.javac="javac"] - location of javac binary (part
@@ -386,7 +437,7 @@ var Env = function (config, deps) {
  * @property {string} sourceJavaVersion - set to "1.5"
  * @property {string} targetJavaVersion - set to "1.5"
  * @property {string} arch - set to "arm"
- * @property {string} androidAPIVersion - "19.0.0"
+ * @property {string} androidAPILevel - "19"
  * @property {string} keystore - set to xwalk-android keystore
  * @property {string} keystoreAlias - set to "xwalkdebugkey"
  * @property {string} keystorePassword - set to "xwalkdebug"
@@ -402,7 +453,6 @@ Env.CONFIG_DEFAULTS = {
   arch: 'x86',
 
   androidSDKDir: null,
-  androidAPIVersion: '19.0.0',
   androidAPILevel: null,
 
   // we can hopefully work these out from the androidSDK location
@@ -562,9 +612,6 @@ Env.prototype.configure = function (config) {
   // fill any missing keys in config
   _.defaults(config, Env.CONFIG_DEFAULTS);
 
-  // derive API major version
-  config.androidAPILevel = parseInt(config.androidAPIVersion, 10);
-
   // check there are no keys in config that aren't in defaults,
   // and that config has all the required keys
   var configKeys = _.keys(config);
@@ -590,11 +637,63 @@ Env.prototype.configure = function (config) {
     return promise;
   }
 
-  // check that the two main directories exist
-  Q.all([
-    self.finder.checkIsDirectory(config.androidSDKDir),
-    self.finder.checkIsDirectory(config.xwalkAndroidDir)
-  ])
+  // get androidAPILevel
+  var androidAPILevelPromise;
+
+  if (config.androidAPILevel) {
+    androidAPILevelPromise = Q(parseInt(config.androidAPILevel, 10));
+  }
+  else {
+    // find all the directories under "platforms" which match "android-*"
+    // and convert into android API level numbers; then select the
+    // last (latest) one
+    androidAPILevelPromise = self.finder.globFiles(
+      stripTrailingSeparators(config.androidSDKDir) + '/platforms/android-*/'
+    )
+    .then(
+      function (directories) {
+        var androidAPILevel = null;
+
+        if (directories.length) {
+          // get the basename for each (this ensures they can be alpha
+          // sorted without path separators causing problems on Windows)
+          directories = _.map(directories, path.basename);
+
+          // ensure they are alpha-sorted
+          var sorted = directories.sort();
+
+          // take the part after "android-" of the last one in the sorted list
+          androidAPILevel = _.last(sorted).match(/android-([\d\.]+)/);
+
+          if (androidAPILevel) {
+            androidAPILevel = androidAPILevel[1];
+          }
+        }
+
+        if (!androidAPILevel) {
+          // no platforms/ directories or the last path didn't match
+          // "android-", so just take the highest-numbered API level we
+          // know about; hopefully this won't happen
+          androidAPILevel = _.last(_.keys(apiVersionToAndroidVersion).sort());
+        }
+
+        return Q(parseInt(androidAPILevel, 10));
+      }
+    );
+  }
+
+  androidAPILevelPromise
+  .then(
+    function (androidAPILevel) {
+      config.androidAPILevel = androidAPILevel;
+
+      // check that the two main directories exist
+      return Q.all([
+        self.finder.checkIsDirectory(config.androidSDKDir),
+        self.finder.checkIsDirectory(config.xwalkAndroidDir)
+      ]);
+    }
+  )
   .then(
     function () {
       // locate Android SDK pieces
