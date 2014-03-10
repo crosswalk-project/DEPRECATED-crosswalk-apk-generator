@@ -350,7 +350,14 @@ Finder.prototype.findDirectories = function (rootDir, dir, tried) {
         );
       });
 
-      dfd.resolve(Q.all(checkedResultPromises));
+      Q.all(checkedResultPromises)
+      .done(
+        dfd.resolve,
+
+        function () {
+          dfd.reject(tried);
+        }
+      );
     },
 
     dfd.reject
