@@ -15,7 +15,62 @@ var BuildTools = require('./build-tools');
 // to guess where tools will be on Windows, as the directories
 // are named 'build-tools/android-<version>' rather than
 // 'build-tools/<api level>' as they are on Linux
-var apiVersionToAndroidVersion = require('./path-helpers').apiVersionToAndroidVersion;
+var apiVersionToAndroidVersion = {
+  19: '4.4', // kitkat
+  18: '4.3', // jelly bean MR2
+  17: '4.2', // jelly bean MR1
+  16: '4.1', // jelly bean
+  15: '4.0.3', // ice cream sandwich MR1
+  14: '4.0' // ice cream sandwich
+};
+
+// for an array of paths, sort the array by the name of the parent
+// directory of each file, as it corresponds to an Android version number
+//
+// for example:
+//
+// files = ['build-tools/19.0.1/aapt', 'build-tools/19.0.0/aapt']
+// will return
+// ['build-tools/19.0.0/aapt', 'build-tools/19.0.1/aapt']
+//
+// and:
+//
+// files = ['build-tools/19.0.1/aapt', 'build-tools/android-4.4']
+// will return
+// ['build-tools/android-4.4/aapt', 'build-tools/19.0.1/aapt']
+// as 4.4 is treated as '19.0.0'
+//
+// NB paths should contain paths which have forward slashes for the
+// path separators (e.g. as returned by glob())
+var selectLatestVersion = function (paths) {
+  // first map to objects which keep the original path as well
+  // as the version
+  var pathsWithVersions = _.map(paths, function (aPath) {
+    // get the version: it's the part of the path before the
+    // basename (the last path element); if it starts with 'android-',
+    // map the part after android- to an API level + '.0.0'
+    var version = _.last(path.dirname(aPath).split('/'));
+
+    if (/android-/.test(version)) {
+      version = apiVersionToAndroidVersion(version.replace('android-'));
+      version += '.0.0';
+    }
+
+    return {
+      path: aPath,
+      version: version
+    };
+  });
+
+  // then sort them
+  var sorted = _.sortBy(pathsWithVersions, 'version');
+
+  // then map back to an array of path strings
+  paths = _.pluck(sorted, 'path');
+
+  // return the last one
+  return _.last(paths);
+};
 
 /*
  * Locate binaries and scripts outside the Android SDK,
@@ -68,34 +123,12 @@ var locateFiles = function (finder, config) {
  *   android.jar: "platforms/android-18/android.jar"
  */
 var locateAndroidPieces = function (finder, config) {
-  var androidPieces = {};
-
   // get the Android version for the API level;
   // this is used to find the tools where the directory
   // name is android-N.M rather than N.M.P
   var androidVersion = apiVersionToAndroidVersion[config.androidAPILevel];
 
-  if (!config.aapt) {
-    androidPieces.aapt = {
-      exe: 'aapt',
-      guessDirs: [
-        path.join('build-tools', config.androidAPILevel + '*'),
-        path.join('build-tools', 'android-' + androidVersion)
-      ],
-      versionSort: true
-    };
-  }
-
-  if (!config.dx) {
-    androidPieces.dx = {
-      exe: 'dx',
-      guessDirs: [
-        path.join('build-tools', config.androidAPILevel + '*'),
-        path.join('build-tools', 'android-' + androidVersion)
-      ],
-      versionSort: true
-    };
-  }
+  var androidPieces = {};
 
   if (!config.anttasksJar) {
     androidPieces.anttasksJar = {
@@ -117,6 +150,29 @@ var locateAndroidPieces = function (finder, config) {
     androidPieces.zipalign = {
       exe: 'zipalign',
       guessDirs: ['tools']
+    };
+  }
+
+  // aapt and dx require sorting of the returned values by Android version
+  if (!config.aapt) {
+    androidPieces.aapt = {
+      exe: 'aapt',
+      guessDirs: [
+        path.join('build-tools', config.androidAPILevel + '*'),
+        path.join('build-tools', 'android-' + androidVersion)
+      ],
+      filter: selectLatestVersion
+    };
+  }
+
+  if (!config.dx) {
+    androidPieces.dx = {
+      exe: 'dx',
+      guessDirs: [
+        path.join('build-tools', config.androidAPILevel + '*'),
+        path.join('build-tools', 'android-' + androidVersion)
+      ],
+      filter: selectLatestVersion
     };
   }
 

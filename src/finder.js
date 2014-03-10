@@ -13,7 +13,6 @@ var _ = require('lodash');
 
 var pathHelpers = require('./path-helpers');
 var fixSeparators = pathHelpers.fixSeparators;
-var apiVersionToAndroidVersion = pathHelpers.apiVersionToAndroidVersion;
 var stripTrailingSeparators = pathHelpers.stripTrailingSeparators;
 
 /*
@@ -113,29 +112,54 @@ var checkPath = function (pathToTest, fs, method) {
 };
 
 // make a function which returns a promise that resolves to a single
-// file, or rejects if an error occurs or more than one path is returned
-var makeGlobFn = function (globFiles, rootDir, file, isDirectory) {
+// file, or rejects if an error occurs or more than one path is returned;
+// the glob tried is added to the array tried
+var makeGlobFn = function (globFiles, rootDir, file, isDirectory, tried) {
+  tried = tried || [];
+
   return function () {
     var dfd = Q.defer();
 
     globFiles(rootDir, file, isDirectory)
     .done(
-      function (files) {
-        if (files.length === 1) {
-          dfd.resolve(files[0]);
-        }
-        else if (files.length > 1) {
-          dfd.reject(new Error('ambiguous result - multiple matching files ' +
-                               'for ' + file + ':\n' + files.join('\n')));
+      function (files, pattern) {
+        tried.push(pattern);
+
+        if (files.length === 0) {
+          dfd.reject(tried);
         }
         else {
-          dfd.reject(new Error('could not find file ' + file +
-                               ' under directory ' + rootDir));
+          dfd.resolve(files);
         }
       },
 
       dfd.reject
     );
+
+    return dfd.promise;
+  };
+};
+
+// returning a promise which resolves to one or more candidate paths;
+// if no matches are found, promise is rejected; if an error occurs,
+// the promise is rejected with that error
+var makeGuessPathFn = function (guessPath) {
+  return function () {
+    var dfd = Q.defer();
+
+    glob(guessPath, function (err, results) {
+      if (err) {
+        dfd.reject(err);
+      }
+      else if (results.length === 0) {
+        dfd.reject();
+      }
+      else {
+        // fix the separators (glob() always returns forwards slashes)
+        results = _.map(results, fixSeparators);
+        dfd.resolve(results);
+      }
+    });
 
     return dfd.promise;
   };
@@ -252,8 +276,9 @@ Finder.prototype.checkExecutable = function (exe, args, required, ignoreErrors) 
  * @param {boolean} [isDirectory=false] - set to true if globbing for a
  * directory (i.e. "file" is a directory rather than a file)
  *
- * @returns {external:Promise} resolves to the array of files found
- * which match "file" under rootDir, or rejects with an error if the
+ * @returns {external:Promise} resolves to (files, pattern), where
+ * files is the array of files found which match "file" under rootDir
+ * and pattern the matched pattern; or rejects with an error if the
  * search throws an error; note that this may resolve to an empty
  * array if no matching files are found; also not that if
  * isDirectory == true, a trailing slash is added to the search pattern,
@@ -283,9 +308,7 @@ Finder.prototype.globFiles = function (rootDir, file, isDirectory) {
       // glob always returns matches with forward slashes as path
       // separators, so we ensure that they are converted to OS-specific
       // separators here
-      files = _.map(files, function (filename) {
-        return fixSeparators(filename);
-      });
+      files = _.map(files, fixSeparators);
 
       dfd.resolve(files);
     }
@@ -295,16 +318,19 @@ Finder.prototype.globFiles = function (rootDir, file, isDirectory) {
 };
 
 /**
- * Find directory under rootDir by globbing.
+ * Find directories under rootDir by globbing.
  *
  * @param {string} rootDir - root directory to search inside
  * @param {string[]} dir - directory to find
+ * @param {string[]} tried - directories/globs already tried (mainly used
+ * as an accumulator for recursive calls)
  *
  * @returns {external:Promise} resolves to directory
  * found (always with a trailing path separator), rejects with an
  * error if the glob throws an error or if no matching directory is found
  */
-Finder.prototype.findDirectory = function (rootDir, dir) {
+Finder.prototype.findDirectories = function (rootDir, dir, tried) {
+  tried = tried || [];
   var self = this;
   var dfd = Q.defer();
   var isGlobForDirectory = true;
@@ -318,24 +344,27 @@ Finder.prototype.findDirectory = function (rootDir, dir) {
 
   globFn()
   .done(
-    function (result) {
-      self.checkIsDirectory(result)
-      .done(
-        function (isDir) {
-          if (isDir) {
-            // ensure that the result path has a trailing path separator
-            result = stripTrailingSeparators(result);
-            result += path.sep;
-
-            dfd.resolve(result);
+    function (results) {
+      // check each item in results represents a directory
+      var checkedResultPromises = _.map(results, function (result) {
+        return self.checkIsDirectory(result)
+        .then(
+          function (isDir) {
+            if (isDir) {
+              // ensure that the result path has a trailing path separator
+              result = stripTrailingSeparators(result);
+              result += path.sep;
+              return result;
+            }
+            else {
+              tried.push(result);
+              return Q.reject();
+            }
           }
-          else {
-            dfd.reject();
-          }
-        },
+        );
+      });
 
-        dfd.reject
-      );
+      dfd.resolve(Q.all(checkedResultPromises));
     },
 
     dfd.reject
@@ -344,82 +373,8 @@ Finder.prototype.findDirectory = function (rootDir, dir) {
   return dfd.promise;
 };
 
-// for an array of paths, sort the array by the name of the parent
-// directory of each file, as it corresponds to an Android version number;
-//
-// for example:
-//
-// files = ['build-tools/19.0.1/aapt', 'build-tools/19.0.0/aapt']
-// will return
-// ['build-tools/19.0.0/aapt', 'build-tools/19.0.1/aapt']
-//
-// or:
-//
-// files = ['build-tools/19.0.1/aapt', 'build-tools/android-4.4']
-// will return
-// ['build-tools/android-4.4/aapt', 'build-tools/19.0.1/aapt']
-// as 4.4 is treated as '19.0.0'
-//
-// NB paths should contain paths which have forward slashes for the
-// path separators (e.g. as returned by glob())
-var sortByVersion = function (paths) {
-  // first map to objects which keep the original path as well
-  // as the version
-  var pathsWithVersions = _.map(paths, function (aPath) {
-    // get the version: it's the part of the path before the
-    // basename (the last path element); if it starts with 'android-',
-    // map the part after android- to an API level + '.0.0'
-    var version = _.last(path.dirname(aPath).split('/'));
-
-    if (/android-/.test(version)) {
-      version = apiVersionToAndroidVersion(version.replace('android-'));
-      version += '.0.0';
-    }
-
-    return {
-      path: aPath,
-      version: version
-    };
-  });
-
-  // then sort them
-  var sorted = _.sortBy(pathsWithVersions, 'version');
-
-  // then map back to an array of path strings
-  return _.pluck(sorted, 'path');
-};
-
-// return a function which will attempt to find guessPath,
-// returning a promise which resolves to the correct path if it is found
-var makeGuessPathFn = function (guessPath, versionSort) {
-  return function () {
-    var dfd = Q.defer();
-
-    glob(guessPath, function (err, results) {
-      if (err) {
-        dfd.reject(err);
-      }
-      else if (results.length === 0) {
-        dfd.reject();
-      }
-      else {
-        if (versionSort) {
-          results = sortByVersion(results);
-        }
-
-        // fix the separators (glob() always returns forwards slashes)
-        var result = fixSeparators(_.last(results));
-
-        dfd.resolve(result);
-      }
-    });
-
-    return dfd.promise;
-  };
-};
-
 /**
- * <p>Try to find a file by guessing then by globbing.</p>
+ * <p>Try to find files by guessing then by globbing.</p>
  *
  * <p>The search checks each of the possible file names for
  * each of the possible directories under the root directory
@@ -453,11 +408,12 @@ var makeGuessPathFn = function (guessPath, versionSort) {
  *
  * @returns {external:Promise} resolves to the verified file location
  * (if found) or is rejected with an error if the search fails (either
- * because the glob threw an error, no files were found, or multiple
- * potential matching files were found); the returned error is the
- * last error recorded while searching for the files
+ * because the glob threw an error, no files were found); the returned
+ * error is the last error recorded while searching for the files (if
+ * one occurs) or an array of the tried file paths
  */
-Finder.prototype.findFile = function (rootDir, guessDirs, possibleNames, versionSort) {
+Finder.prototype.findFiles = function (rootDir, guessDirs, possibleNames, tried) {
+  tried = tried || [];
   var self = this;
   var dfd = Q.defer();
 
@@ -469,9 +425,10 @@ Finder.prototype.findFile = function (rootDir, guessDirs, possibleNames, version
   for (var i = 0; i < possibleNames.length; i += 1) {
     for (var j = 0; j < guessDirs.length; j += 1) {
       var guessPath = path.join(rootDir, guessDirs[j], possibleNames[i]);
+      tried.push(guessPath);
 
       // make a function which tries the guessPath
-      var guessFn = makeGuessPathFn(guessPath, versionSort);
+      var guessFn = makeGuessPathFn(guessPath);
 
       tries.push(guessFn);
     }
@@ -490,7 +447,9 @@ Finder.prototype.findFile = function (rootDir, guessDirs, possibleNames, version
         var globFn = makeGlobFn(
           self.globFiles.bind(self),
           rootDir,
-          possibleNames[i]
+          possibleNames[i],
+          false,
+          tried
         );
 
         tries.push(globFn);
@@ -499,7 +458,13 @@ Finder.prototype.findFile = function (rootDir, guessDirs, possibleNames, version
       return anyResolves(tries);
     }
   )
-  .done(dfd.resolve, dfd.reject);
+  .done(
+    dfd.resolve,
+
+    function () {
+      dfd.reject(tried);
+    }
+  );
 
   return dfd.promise;
 };
@@ -518,7 +483,12 @@ Finder.prototype.findFile = function (rootDir, guessDirs, possibleNames, version
  *   aapt: {
  *     (files: ['foo.jar', 'foo-bar.jar'] ||
  *      exe: 'aapt'),
- *     guessDir: 'build-tools/18.0.1'
+ *     guessDir: 'build-tools/18.0.1',
+ *     filter: function (results) {
+ *       // custom filter function to return a single file from those
+ *       // found; if not set, the last file in the array of candidates
+ *       // is returned
+ *     }
  *   },
  *
  *   // for resource directories
@@ -560,7 +530,7 @@ Finder.prototype.findFile = function (rootDir, guessDirs, possibleNames, version
  * </pre>
  *
  * <p>If any pieces can't be found, its location is set to
- * '!!!NOT FOUND!!!' and the promise is rejected with an error
+ * '!!!NOT FOUND!!!' + paths tried and the promise is rejected with an error
  * showing all the locations found up to the point of failure,
  * including the failed one.</p>
  */
@@ -581,7 +551,7 @@ Finder.prototype.locatePieces = function (rootDir, pieces) {
       var libDirsPromises = [];
 
       _.each(properties.resDirs, function (dirPath) {
-        var resDirPromise = self.findDirectory(rootDir, dirPath);
+        var resDirPromise = self.findDirectories(rootDir, dirPath).then(_.last);
         resDirsPromises.push(resDirPromise);
       });
 
@@ -594,7 +564,7 @@ Finder.prototype.locatePieces = function (rootDir, pieces) {
       );
 
       _.each(properties.libs, function (dirPath) {
-        var libDirPromise = self.findDirectory(rootDir, dirPath);
+        var libDirPromise = self.findDirectories(rootDir, dirPath).then(_.last);
         libDirsPromises.push(libDirPromise);
       });
 
@@ -610,34 +580,40 @@ Finder.prototype.locatePieces = function (rootDir, pieces) {
     }
     // search for directory
     else if (properties.directory) {
-      promise = self.findDirectory(rootDir, properties.directory);
+      promise = self.findDirectories(rootDir, properties.directory);
 
       promise.then(
-        function (result) {
-          locations[alias] = result;
+        function (results) {
+          locations[alias] = _.last(results);
         },
 
-        function () {
-          locations[alias] = '!!!NOT FOUND!!!';
+        function (tried) {
+          locations[alias] = '!!!NOT FOUND!!!; tried these paths:\n' +
+                             tried.join('\n');
         }
       );
     }
-    // search for single file or binary
+    // search for file or binary
     else {
       var guessDirs = properties.guessDirs;
 
       var files = properties.files ||
                   getLikelyBinaryNames(properties.exe, self.platform);
 
-      promise = self.findFile(rootDir, guessDirs, files, properties.versionSort);
+      // return the last item in the array of found files if no custom
+      // filter was specified
+      var filter = properties.filter || _.last;
+
+      promise = self.findFiles(rootDir, guessDirs, files);
 
       promise.then(
-        function (filePath) {
-          locations[alias] = filePath;
+        function (files) {
+          locations[alias] = filter(files);
         },
 
-        function () {
-          locations[alias] = '!!!NOT FOUND!!!';
+        function (tried) {
+          locations[alias] = '!!!NOT FOUND!!!; tried these paths:\n' +
+                             tried.join('\n');
         }
       );
     }

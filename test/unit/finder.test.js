@@ -18,51 +18,55 @@ var root = path.join(__dirname, 'test-dirs');
 var testDirPath = path.join(root, 'foo', path.sep);
 var testTxtPath = path.join(root, 'bar', 'test.txt');
 var cmd1BatPath = path.join(root, 'foo', 'cmd1.bat');
+var flumpFile1 = path.join(root, 'bar', 'bam', 'flump.txt');
+var flumpFile2 = path.join(root, 'bar', 'baz', 'flump.txt');
+var barDir1 = path.join(root, 'bar');
+var barDir2 = path.join(root, 'baz', 'bar');
 
 var Finder = require('../../src/finder');
 var finder = Finder();
 
 describe('Finder', function () {
 
-  describe('findFile()', function () {
+  describe('findFiles()', function () {
 
     it('should use the best guess location first', function (done) {
-      var promise = finder.findFile(root, ['bar'], ['test.txt']);
-      promise.should.become(testTxtPath).and.notify(done);
+      var promise = finder.findFiles(root, ['bar'], ['test.txt']);
+      promise.should.become([testTxtPath]).and.notify(done);
     });
 
     it('should resort to a glob search when best guess fails', function (done) {
       // the file isn't in the foo directory, but in bar
-      var promise = finder.findFile(root, ['foo'], ['test.txt']);
-      promise.should.become(testTxtPath).and.notify(done);
+      var promise = finder.findFiles(root, ['foo'], ['test.txt']);
+      promise.should.become([testTxtPath]).and.notify(done);
     });
 
-    it('should reject if the result is ambiguous (> 1 file)', function (done) {
+    it('should return multiple file matches', function (done) {
       // there are two flump.txt files under foo/: foo/baz/flump.txt
       // and foo/bam/flump.txt
-      var promise = finder.findFile(root, ['foo'], ['flump.txt']);
-      promise.should.be.rejectedWith(/ambiguous/).and.notify(done);
+      var promise = finder.findFiles(root, ['foo'], ['flump.txt']);
+      promise.should.become([flumpFile1, flumpFile2]).and.notify(done);
     });
 
   });
 
-  describe('findDirectory()', function () {
+  describe('findDirectories()', function () {
 
     it('should resolve if a matching directory is found', function (done) {
-      finder.findDirectory(root, 'foo')
-      .should.become(testDirPath).and.notify(done);
+      finder.findDirectories(root, 'foo')
+      .should.become([testDirPath]).and.notify(done);
     });
 
     it('should reject if no result is found', function (done) {
-      finder.findDirectory(root, 'snat')
+      finder.findDirectories(root, 'snat')
       .should.be.rejected.and.notify(done);
     });
 
-    it('should reject if the result is ambiguous (> 1 directory)', function (done) {
+    it('should return multiple directory matches', function (done) {
       // there are two bar directories: bar/ and baz/bar/;
-      // so this rejects as the result is ambiguous
-      finder.findDirectory(root, 'bar')
-      .should.be.rejectedWith(/ambiguous/).and.notify(done);
+      // NB returned directory paths always have a trailing path separator
+      finder.findDirectories(root, 'bar')
+      .should.become([barDir1 + path.sep, barDir2 + path.sep]).and.notify(done);
     });
 
   });
@@ -111,10 +115,10 @@ describe('Finder', function () {
     });
 
     it('should reject if any pieces are not found', function (done) {
-      // stub the findFile() method on the finder, so we can return
+      // stub the findFiles() method on the finder, so we can return
       // a fail
       var reject = Q.reject(new Error('could not find file'));
-      var stub = sinon.stub(finder, 'findFile').returns(reject);
+      var stub = sinon.stub(finder, 'findFiles').returns(reject);
 
       var pieces = {
         test: {
