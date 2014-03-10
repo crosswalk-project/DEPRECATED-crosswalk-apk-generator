@@ -330,7 +330,7 @@ describe('Env.build()', function () {
     .then(
       function (env) {
         // manually set a stub on the Env object
-        env.buildTools = buildTools;
+        env._buildTools = buildTools;
 
         try {
           env.build(app, locations).should.become(locations.finalApk)

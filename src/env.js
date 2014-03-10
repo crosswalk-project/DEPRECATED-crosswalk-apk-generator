@@ -395,28 +395,28 @@ var Env = function (config, deps) {
    * @type CommandRunner
    * @instance
    */
-  this.commandRunner = deps.commandRunner || require('./command-runner')(false);
+  this._commandRunner = deps.commandRunner || require('./command-runner')(false);
 
   /**
    * @member
    * @type AppSkeleton
    * @instance
    */
-  this.appSkeleton = deps.appSkeleton || require('./app-skeleton')();
+  this._appSkeleton = deps.appSkeleton || require('./app-skeleton')();
 
   /**
    * @member
    * @type Finder
    * @instance
    */
-  this.finder = deps.finder || require('./finder')();
+  this._finder = deps.finder || require('./finder')();
 
   /**
    * @member
    * @type BuildTools
    * @instance
    */
-  this.buildTools = null;
+  this._buildTools = null;
 
   return this.configure(config);
 };
@@ -485,11 +485,11 @@ Env.CONFIG_DEFAULTS = {
  * @returns {BuildTools} configured for this {@link Env}
  */
 Env.prototype.getBuildTools = function () {
-  if (!this.buildTools) {
-    this.buildTools = BuildTools(this, this.commandRunner);
+  if (!this._buildTools) {
+    this._buildTools = BuildTools(this, this._commandRunner);
   }
 
-  return this.buildTools;
+  return this._buildTools;
 };
 
 /**
@@ -567,7 +567,7 @@ Env.prototype.build = function (app, locations) {
   // file for the app, the manifest, res/, plus assets copied from
   // the appRoot directory; this is pure JS, with no external
   // tools involved
-  this.appSkeleton.generate(appData, locations)
+  this._appSkeleton.generate(appData, locations)
   .then(
     function () {
       // make the apk file; note that we make the R.java file
@@ -647,7 +647,7 @@ Env.prototype.configure = function (config) {
     // find all the directories under "platforms" which match "android-*"
     // and convert into android API level numbers; then select the
     // last (latest) one
-    androidAPILevelPromise = self.finder.globFiles(
+    androidAPILevelPromise = self._finder.globFiles(
       stripTrailingSeparators(config.androidSDKDir) + '/platforms/android-*/'
     )
     .then(
@@ -689,21 +689,21 @@ Env.prototype.configure = function (config) {
 
       // check that the two main directories exist
       return Q.all([
-        self.finder.checkIsDirectory(config.androidSDKDir),
-        self.finder.checkIsDirectory(config.xwalkAndroidDir)
+        self._finder.checkIsDirectory(config.androidSDKDir),
+        self._finder.checkIsDirectory(config.xwalkAndroidDir)
       ]);
     }
   )
   .then(
     function () {
       // locate Android SDK pieces
-      var androidPiecesPromise = locateAndroidPieces(self.finder, config);
+      var androidPiecesPromise = locateAndroidPieces(self._finder, config);
 
       // locate xwalk pieces
-      var xwalkPiecesPromise = locateXwalkPieces(self.finder, config);
+      var xwalkPiecesPromise = locateXwalkPieces(self._finder, config);
 
       // locate executables and files
-      var filesPromise = locateFiles(self.finder, config);
+      var filesPromise = locateFiles(self._finder, config);
 
       return Q.all([androidPiecesPromise, xwalkPiecesPromise, filesPromise]);
     }

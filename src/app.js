@@ -118,7 +118,7 @@ var App = function (config, deps) {
   }
 
   deps = deps || {};
-  this.finder = deps.finder || require('./finder')();
+  this._finder = deps.finder || require('./finder')();
 
   return this.configure(config);
 };
@@ -278,8 +278,8 @@ App.prototype.configure = function (config) {
 
   if (appRootSet) {
     appLocated = Q.all([
-      this.finder.checkIsDirectory(config.appRoot),
-      this.finder.checkIsFile(path.join(config.appRoot, config.appLocalPath))
+      this._finder.checkIsDirectory(config.appRoot),
+      this._finder.checkIsFile(path.join(config.appRoot, config.appLocalPath))
     ]);
   }
 

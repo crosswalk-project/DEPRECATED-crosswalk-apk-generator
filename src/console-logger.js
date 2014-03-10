@@ -7,6 +7,25 @@
 
 var _ = require('lodash');
 
+// private function used recursively by logPublicProperties();
+// copy non-private properties of obj to the object copy
+var copyPublic = function (obj, copy) {
+  var privatePrefix = /^_/;
+
+  _.each(obj, function (value, key) {
+    if (!privatePrefix.test(key)) {
+      if (_.isObject(value) && !_.isArray(value)) {
+        copy[key] = copyPublic(value, {});
+      }
+      else {
+        copy[key] = value;
+      }
+    }
+  });
+
+  return copy;
+};
+
 /**
  * Wrapper for console which provides an additional method for replacing
  * the current line of text (for writing progress messages).
@@ -37,6 +56,14 @@ ConsoleLogger.prototype.replace = function (msg) {
   process.stdout.clearLine();  // clear current text
   process.stdout.cursorTo(0);  // move cursor to beginning of line
   process.stdout.write(msg);
+};
+
+/**
+ * Write properties of an object to the console, excluding any
+ * properties which begin with '_' (private ones)
+ */
+ConsoleLogger.prototype.logPublicProperties = function (obj) {
+  console.log(copyPublic(obj, {}));
 };
 
 module.exports = ConsoleLogger;
