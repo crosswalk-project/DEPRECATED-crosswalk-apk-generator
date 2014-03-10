@@ -651,12 +651,15 @@ Env.prototype.configure = function (config) {
     )
     .then(
       function (directories) {
+        // get the basename for each (this ensures they can be alpha
+        // sorted without path separators causing problems on Windows)
+        directories = _.map(directories, path.basename);
+
         // ensure they are alpha-sorted
         var sorted = directories.sort();
 
         // take the part after "android-" of the last one in the sorted list
-        var androidAPILevel = path.basename(_.last(sorted));
-        androidAPILevel = androidAPILevel.match(/android-([\d\.]+)/);
+        var androidAPILevel = _.last(sorted).match(/android-([\d\.]+)/);
 
         if (androidAPILevel) {
           androidAPILevel = androidAPILevel[1];
