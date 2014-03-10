@@ -19,6 +19,7 @@ var Locations = require('./locations');
 var Env = require('./env');
 var App = require('./app');
 var genericUsage = require('./usage');
+var logger = require('./console-logger')();
 
 // show usage message
 var usage = function (cliOpts) {
@@ -27,7 +28,7 @@ var usage = function (cliOpts) {
             'line options, or via JSON config files (see General ' +
             'options below).';
 
-  console.log(genericUsage(msg, cliOpts));
+  logger.log(genericUsage(msg, cliOpts));
 };
 
 /*
@@ -275,11 +276,11 @@ _.each(Env.CONFIG_DEFAULTS, function (value, key) {
 });
 
 // START
-console.log('\n*** STARTING BUILD');
+logger.log('\n*** STARTING BUILD');
 
 var commandRunner = CommandRunner(verbose);
 
-console.log('\n*** CHECKING ENVIRONMENT...');
+logger.log('\n*** CHECKING ENVIRONMENT...');
 
 // App and Env are created asynchronously in parallel
 Q.all([
@@ -294,15 +295,15 @@ Q.all([
     var locations = Locations(app.sanitisedName, app.pkg, env.arch, outDir);
 
     // configuration done
-    console.log('\n*** APPLICATION:');
-    console.log(app);
-    console.log('\n*** ENVIRONMENT:');
-    console.log(env);
-    console.log('\n*** LOCATIONS:');
-    console.log(locations);
+    logger.log('\n*** APPLICATION:');
+    logger.logPublicProperties(app);
+    logger.log('\n*** ENVIRONMENT:');
+    logger.logPublicProperties(env);
+    logger.log('\n*** LOCATIONS:');
+    logger.logPublicProperties(locations);
 
     // make the apk for this environment
-    console.log('\n*** CREATING APPLICATION SKELETON IN ' + outDir);
+    logger.log('\n*** CREATING APPLICATION SKELETON IN ' + outDir);
 
     return env.build(app, locations);
   }
@@ -312,16 +313,16 @@ Q.all([
     var end = new Date();
     var msecs = end.getTime() - start.getTime();
     var secs = (msecs / 1000);
-    console.log('\n*** DONE\n*** BUILD TIME: ' + secs + ' seconds\n' +
+    logger.log('\n*** DONE\n*** BUILD TIME: ' + secs + ' seconds\n' +
                 '*** Final output apk:\n    ' + finalApk);
   },
 
   function (e) {
     console.error('!!!!!!! error occurred');
-    console.log();
+    logger.log();
     console.error(e.stack);
-    console.log();
-    console.log('show options by calling this script with the --help option');
+    logger.log();
+    logger.log('show options by calling this script with the --help option');
     process.exit(1);
   }
 );
