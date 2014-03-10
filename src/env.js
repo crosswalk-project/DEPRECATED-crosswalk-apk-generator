@@ -509,6 +509,7 @@ Env.prototype.build = function (app, locations) {
     extensions: _.clone(app.extensions),
 
     remoteDebugging: app.remoteDebugging,
+    orientation: app.orientation,
     targetSdkVersion: this.androidAPILevel
   };
 

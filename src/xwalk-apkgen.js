@@ -155,6 +155,11 @@ var cliOpts = {
   },
 
   // app optional
+  'orientation': {
+    describe: 'orientation for the application (e.g. "portrait", "landscape")',
+    section: 'Application (app)'
+  },
+
   'icon': {
     describe: 'path to the icon file for the application',
     section: 'Application (app)',

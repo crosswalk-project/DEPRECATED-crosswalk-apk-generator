@@ -12,6 +12,7 @@
                android:hardwareAccelerated="true"
                android:icon="@drawable/<%= iconName %>">
     <activity android:name="<%= pkg + '.' + activityClassName %>"
+              <% if (orientation) { %>android:screenOrientation="<%= orientation %>"<% } %>
               android:theme="@android:style/<%= theme %>"
               android:configChanges="orientation|keyboardHidden|keyboard|screenSize"
               android:label="<%= name %>">
