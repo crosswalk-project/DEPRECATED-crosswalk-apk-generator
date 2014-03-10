@@ -99,7 +99,7 @@ var checkPath = function (pathToTest, fs, method) {
           dfd.reject(err);
         }
         else if (stats[method]()) {
-          dfd.resolve(alphaLast);
+          dfd.resolve(fixSeparators(alphaLast));
         }
         else {
           dfd.resolve(false);
@@ -297,9 +297,11 @@ Finder.prototype.globFiles = function (pattern) {
       // glob always returns matches with forward slashes as path
       // separators, so we ensure that they are converted to OS-specific
       // separators here
-      files = _.map(files, fixSeparators);
+      var fixedFiles = _.map(files, function (file) {
+        return fixSeparators(file);
+      });
 
-      dfd.resolve(files);
+      dfd.resolve(fixedFiles);
     }
   });
 
