@@ -9,6 +9,12 @@
 # androidSDKDir=/path/to/android/sdk./all.sh <arch> <channel>
 # where arch is one of "x86" or "arm" and channel is "stable", "beta"
 # or "canary" (NB arm may not be available in all channels)
+
+if [ "x$androidSDKDir" = "x" ] ; then
+  echo "Please set the androidSDKDir environment variable first"
+  exit 1
+fi
+
 WD=`dirname $0`
 ARCH=$1
 CHANNEL=$2
