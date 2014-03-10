@@ -651,23 +651,28 @@ Env.prototype.configure = function (config) {
     )
     .then(
       function (directories) {
-        // get the basename for each (this ensures they can be alpha
-        // sorted without path separators causing problems on Windows)
-        directories = _.map(directories, path.basename);
+        var androidAPILevel = null;
 
-        // ensure they are alpha-sorted
-        var sorted = directories.sort();
+        if (directories.length) {
+          // get the basename for each (this ensures they can be alpha
+          // sorted without path separators causing problems on Windows)
+          directories = _.map(directories, path.basename);
 
-        // take the part after "android-" of the last one in the sorted list
-        var androidAPILevel = _.last(sorted).match(/android-([\d\.]+)/);
+          // ensure they are alpha-sorted
+          var sorted = directories.sort();
 
-        if (androidAPILevel) {
-          androidAPILevel = androidAPILevel[1];
+          // take the part after "android-" of the last one in the sorted list
+          androidAPILevel = _.last(sorted).match(/android-([\d\.]+)/);
+
+          if (androidAPILevel) {
+            androidAPILevel = androidAPILevel[1];
+          }
         }
-        else {
-          // the last path didn't match "android-", so just take
-          // the highest-numbered API level we know about;
-          // hopefully this won't happen
+
+        if (!androidAPILevel) {
+          // no platforms/ directories or the last path didn't match
+          // "android-", so just take the highest-numbered API level we
+          // know about; hopefully this won't happen
           androidAPILevel = _.last(_.keys(apiVersionToAndroidVersion).sort());
         }
 
