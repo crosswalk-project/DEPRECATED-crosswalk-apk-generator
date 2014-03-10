@@ -114,13 +114,13 @@ var checkPath = function (pathToTest, fs, method) {
 // make a function which returns a promise that resolves to a single
 // file, or rejects if an error occurs or more than one path is returned;
 // the glob tried is added to the array tried
-var makeGlobFn = function (globFiles, rootDir, file, isDirectory, tried) {
+var makeGlobFn = function (globFiles, pattern, tried) {
   tried = tried || [];
 
   return function () {
     var dfd = Q.defer();
 
-    globFiles(rootDir, file, isDirectory)
+    globFiles(pattern)
     .done(
       function (files, pattern) {
         tried.push(pattern);
@@ -269,12 +269,12 @@ Finder.prototype.checkExecutable = function (exe, args, required, ignoreErrors) 
 };
 
 /**
- * Find files matching the pattern file under directory rootDir.
+ * Find files matching the pattern under directory rootDir.
  *
  * @param {string} rootDir - root directory to search inside
- * @param {string} file - file to find
- * @param {boolean} [isDirectory=false] - set to true if globbing for a
- * directory (i.e. "file" is a directory rather than a file)
+ * @param {string} pattern - pattern to find; NB glob() patterns MUST
+ * use forward slashes, even on Windows; if you only want directories,
+ * ensure that this ends with '/'
  *
  * @returns {external:Promise} resolves to (files, pattern), where
  * files is the array of files found which match "file" under rootDir
@@ -284,21 +284,10 @@ Finder.prototype.checkExecutable = function (exe, args, required, ignoreErrors) 
  * isDirectory == true, a trailing slash is added to the search pattern,
  * so only directories will be returned
  */
-Finder.prototype.globFiles = function (rootDir, file, isDirectory) {
+Finder.prototype.globFiles = function (pattern) {
   var dfd = Q.defer();
-  isDirectory = !!isDirectory;
 
   // TODO test rootDir is actually a directory
-
-  // NB glob() patterns MUST use forward slashes, even on Windows
-  var pattern = rootDir + '/**/' + file;
-
-  if (isDirectory) {
-    pattern += '/';
-  }
-  else {
-    pattern += '*';
-  }
 
   glob(pattern, function (err, files) {
     if (err) {
@@ -333,13 +322,10 @@ Finder.prototype.findDirectories = function (rootDir, dir, tried) {
   tried = tried || [];
   var self = this;
   var dfd = Q.defer();
-  var isGlobForDirectory = true;
 
   var globFn = makeGlobFn(
     this.globFiles.bind(this),
-    rootDir,
-    dir,
-    isGlobForDirectory
+    stripTrailingSeparators(rootDir) + '/**/' + stripTrailingSeparators(dir) + '/'
   );
 
   globFn()
@@ -446,9 +432,7 @@ Finder.prototype.findFiles = function (rootDir, guessDirs, possibleNames, tried)
       for (var i = 0; i < possibleNames.length; i += 1) {
         var globFn = makeGlobFn(
           self.globFiles.bind(self),
-          rootDir,
-          possibleNames[i],
-          false,
+          stripTrailingSeparators(rootDir) + '/**/' + possibleNames[i],
           tried
         );
 

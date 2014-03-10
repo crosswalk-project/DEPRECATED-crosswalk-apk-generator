@@ -9,6 +9,8 @@ var Q = require('q');
 var path = require('path');
 var _ = require('lodash');
 
+var stripTrailingSeparators = require('./path-helpers').stripTrailingSeparators;
+
 var BuildTools = require('./build-tools');
 
 // map from Android API levels to version numbers; this is used
@@ -52,7 +54,7 @@ var selectLatestVersion = function (paths) {
     var version = _.last(path.dirname(aPath).split('/'));
 
     if (/android-/.test(version)) {
-      version = apiVersionToAndroidVersion(version.replace('android-'));
+      version = apiVersionToAndroidVersion[version.replace('android-')];
       version += '.0.0';
     }
 
@@ -451,7 +453,7 @@ Env.CONFIG_DEFAULTS = {
   arch: 'x86',
 
   androidSDKDir: null,
-  androidAPILevel: 19,
+  androidAPILevel: null,
 
   // we can hopefully work these out from the androidSDK location
   dx: null,
@@ -634,14 +636,55 @@ Env.prototype.configure = function (config) {
     return promise;
   }
 
-  // ensure androidAPILevel is an integer
-  config.androidAPILevel = parseInt(config.androidAPILevel, 10);
+  // get androidAPILevel
+  var androidAPILevelPromise;
 
-  // check that the two main directories exist
-  Q.all([
-    self.finder.checkIsDirectory(config.androidSDKDir),
-    self.finder.checkIsDirectory(config.xwalkAndroidDir)
-  ])
+  if (config.androidAPILevel) {
+    androidAPILevelPromise = Q(parseInt(config.androidAPILevel, 10));
+  }
+  else {
+    // find all the directories under "platforms" which match "android-*"
+    // and convert into android API level numbers; then select the
+    // last (latest) one
+    androidAPILevelPromise = self.finder.globFiles(
+      stripTrailingSeparators(config.androidSDKDir) + '/platforms/android-*/'
+    )
+    .then(
+      function (directories) {
+        // ensure they are alpha-sorted
+        var sorted = directories.sort();
+
+        // take the part after "android-" of the last one in the sorted list
+        var androidAPILevel = path.basename(_.last(sorted));
+        androidAPILevel = androidAPILevel.match(/android-([\d\.]+)/);
+
+        if (androidAPILevel) {
+          androidAPILevel = androidAPILevel[1];
+        }
+        else {
+          // the last path didn't match "android-", so just take
+          // the highest-numbered API level we know about;
+          // hopefully this won't happen
+          androidAPILevel = _.last(_.keys(apiVersionToAndroidVersion).sort());
+        }
+
+        return Q(parseInt(androidAPILevel, 10));
+      }
+    );
+  }
+
+  androidAPILevelPromise
+  .then(
+    function (androidAPILevel) {
+      config.androidAPILevel = androidAPILevel;
+
+      // check that the two main directories exist
+      return Q.all([
+        self.finder.checkIsDirectory(config.androidSDKDir),
+        self.finder.checkIsDirectory(config.xwalkAndroidDir)
+      ]);
+    }
+  )
   .then(
     function () {
       // locate Android SDK pieces

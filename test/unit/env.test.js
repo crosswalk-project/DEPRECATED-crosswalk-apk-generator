@@ -60,6 +60,17 @@ var helpers = {
 
     checkExecutable: function () {
       return Q.resolve();
+    },
+
+    // only used to set androidAPILevel, so always returns two
+    // directories similar to what you'd get from globbing the
+    // Android SDK platforms/ directory
+    globFiles: function () {
+      return Q([
+        '/android/sdk/dir/platforms/android-18',
+        '/android/sdk/dir/platforms/android-17',
+        '/android/sdk/dir/platforms/android-16'
+      ]);
     }
   }
 };
@@ -101,7 +112,11 @@ describe('Env.configure()', function () {
       done(e);
     };
 
-    Env({androidSDKDir: androidDir, xwalkAndroidDir: xwalkDir}, helpers)
+    Env({
+      androidSDKDir: androidDir,
+      xwalkAndroidDir: xwalkDir,
+      androidAPILevel: 19
+    }, helpers)
     .should.be.rejectedWith(new RegExp(androidDir + ' does not exist'))
     .and.should.not.be.rejectedWith(new RegExp(xwalkDir + ' does not exist'))
     .and.notify(finish);
@@ -123,7 +138,11 @@ describe('Env.configure()', function () {
       done(e);
     };
 
-    Env({androidSDKDir: androidDir, xwalkAndroidDir: xwalkDir}, helpers)
+    Env({
+      androidSDKDir: androidDir,
+      xwalkAndroidDir: xwalkDir,
+      androidAPILevel: 19
+    }, helpers)
     .should.be.rejectedWith(new RegExp(xwalkDir + ' does not exist'))
     .and.should.not.be.rejectedWith(new RegExp(androidDir + ' does not exist'))
     .and.notify(finish);
@@ -145,7 +164,11 @@ describe('Env.configure()', function () {
       done(e);
     };
 
-    Env({androidSDKDir: androidDir, xwalkAndroidDir: xwalkDir}, helpers)
+    Env({
+      androidSDKDir: androidDir,
+      xwalkAndroidDir: xwalkDir,
+      androidAPILevel: 19
+    }, helpers)
     .should.be.rejectedWith(/Could not find all required locations/)
     .and.notify(finish);
   });
@@ -166,7 +189,11 @@ describe('Env.configure()', function () {
       done(e);
     };
 
-    Env({androidSDKDir: androidDir, xwalkAndroidDir: xwalkDir}, helpers)
+    Env({
+      androidSDKDir: androidDir,
+      xwalkAndroidDir: xwalkDir,
+      androidAPILevel: 19
+    }, helpers)
     .should.be.rejectedWith(/Could not find all required locations/)
     .and.notify(finish);
   });
@@ -190,10 +217,25 @@ describe('Env.configure()', function () {
     Env({
       androidSDKDir: 'foo',
       xwalkAndroidDir: 'bar',
-      jarsigner: jarsignerLocation
+      jarsigner: jarsignerLocation,
+      androidAPILevel: 19
     }, helpers)
     .should.be.rejectedWith(new RegExp(expected))
     .and.notify(finish);
+  });
+
+  it('should set androidAPILevel by globbing platforms dir if not set', function (done) {
+    // globFiles returns "android-*" directories;
+    // the stubbed out finder returns 3 directories (android-16, android-17
+    // and android-18), so 18 should be selected (as it's last alphabetically)
+    Env({
+      androidSDKDir: fixsep('/foo'),
+      xwalkAndroidDir: fixsep('/bar')
+    }, helpers)
+    .should.eventually.satisfy(function (obj) {
+      return obj.androidAPILevel === 18;
+    })
+    .and.notify(done);
   });
 
   it('should resolve to the Env if configure() is successful', function (done) {
@@ -223,7 +265,8 @@ describe('Env.configure()', function () {
 
     Env({
       androidSDKDir: fixsep('/foo'),
-      xwalkAndroidDir: fixsep('/bar')
+      xwalkAndroidDir: fixsep('/bar'),
+      androidAPILevel: 19
     }, helpers)
     .should.eventually.satisfy(function (obj) {
       // test that the properties in the returned object obj
@@ -279,7 +322,8 @@ describe('Env.build()', function () {
       androidSDKDir: '/me/android-sdk',
       androidJar: '/me/android-sdk/android.jar',
       xwalkAndroidDir: '/me/xwalk_app_template',
-      xwalkRuntimeClientJar: '/me/xwalk_app_template/libs/runtime.jar'
+      xwalkRuntimeClientJar: '/me/xwalk_app_template/libs/runtime.jar',
+      androidAPILevel: 19
     };
 
     Env(envConfig, helpers)
