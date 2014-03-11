@@ -12,6 +12,8 @@ var Q = require('q');
 
 var logger = require('./console-logger')();
 var Env = require('./env');
+var Downloader = require('./downloader');
+var HttpClient = require('./http-client');
 var ArchiveFetcher = require('./archive-fetcher');
 var VersionsFetcher = require('./versions-fetcher');
 var versionsFetcher = VersionsFetcher();
@@ -76,6 +78,10 @@ var opts = {
     describe: 'name of the xwalk_app_template tarball inside the xwalk-android zip file'
   },
 
+  proxy: {
+    describe: 'HTTP proxy to use for queries and downloads'
+  },
+
   help: {
     alias: 'h',
     describe: 'show this help message and exit'
@@ -114,7 +120,12 @@ var showParams = function (params) {
 
 // fetch an xwalk-android zip file
 var fetch = function (nconf, logger, versionsFetcher) {
-  var archiveFetcher = ArchiveFetcher({logger: logger});
+  var httpClient = HttpClient({ proxy: nconf.get('proxy') });
+  var downloader = Downloader({ httpClient: httpClient });
+  var archiveFetcher = ArchiveFetcher({
+    downloader: downloader,
+    logger: logger
+  });
 
   // derive the tarballName and outDir
   var tarballName = nconf.get('tarballName');
