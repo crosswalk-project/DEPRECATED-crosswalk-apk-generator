@@ -1,4 +1,6 @@
 /*jslint node: true*/
+/* turn off lint errors caused by http_proxy environment variable */
+/* jshint -W106 */
 'use strict';
 
 /* Copyright (c) 2014 Intel Corporation. All rights reserved.
@@ -79,7 +81,8 @@ var opts = {
   },
 
   proxy: {
-    describe: 'HTTP proxy to use for queries and downloads'
+    describe: 'HTTP proxy to use for queries and downloads (http:// proxies only)',
+    defaultDescription: '$http_proxy environment variable'
   },
 
   help: {
@@ -96,6 +99,9 @@ var params = {
   channel: nconf.get('channel'),
   version: nconf.get('version')
 };
+
+// proxy configuration
+var proxy = nconf.get('proxy') || process.env.http_proxy;
 
 // generic error handler
 var errorHandler = function (err) {
@@ -120,8 +126,8 @@ var showParams = function (params) {
 
 // fetch an xwalk-android zip file
 var fetch = function (nconf, logger, versionsFetcher) {
-  var httpClient = HttpClient({ proxy: nconf.get('proxy') });
-  var downloader = Downloader({ httpClient: httpClient });
+  var httpClient = HttpClient({proxy: proxy});
+  var downloader = Downloader({httpClient: httpClient});
   var archiveFetcher = ArchiveFetcher({
     downloader: downloader,
     logger: logger
