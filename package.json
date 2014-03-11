@@ -18,13 +18,13 @@
   "dependencies": {
     "adm-zip": "~0.4.3",
     "q": "~0.9.7",
-    "fetch": "~0.3.4",
     "shelljs": "~0.2.6",
     "glob": "~3.2.6",
     "lodash": "~2.2.1",
     "tar": "~0.1.18",
     "mkdirp": "~0.3.5",
-    "nconf": "~0.6.8"
+    "nconf": "~0.6.8",
+    "request": "~2.34.0"
   },
   "directories": {
     "test": "test"
