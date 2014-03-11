@@ -9,7 +9,7 @@ crosswalk-apk-generator has been tested on the following platforms:
 *   Fedora Core 17 Linux (64bit x86) with node v0.10.17
 *   Windows 7 Enterprise (64bit x86) with node v0.10.12
 
-It currently supports Crosswalk-4.
+It currently supports Crosswalk-4 and Crosswalk-5.
 
 # Installation
 
@@ -42,7 +42,6 @@ So far, the APIs and scripts provided by this project replicate most of the func
 
 *   No support for the `--app-url` option (to wrap a Crosswalk app around a remote website)
 *   No support for the `--app-versionCode` option
-*   No support for the `--orientation` option
 *   No support for generating an apk from a Crosswalk manifest via a `--manifest` option
 *   Icon png files are not crunched using aapt during the build, as they are by `make_apk.py`. However, the crosswalk.png images in the `res/drawable-*` directories have been optimised using [imagemin](https://github.com/ksky521/imagemin) to reduce their size. We leave it to the packager's discretion to optimise their png files if using custom icons.
 
@@ -70,7 +69,7 @@ Unfortunately, building a Crosswalk Android apk still requires a lot of dependen
 
 *   If you want to distribute apks via an Android app store, you will need your own keystore. You can set this up using the Java `keytool` application. If you're only debugging your application, you can use the built-in xwalk-android keystore, which crosswalk-apk-generator will use by default.
 
-Note that `xwalk_android_dl` has no dependencies other than `node`.
+Note that `xwalk_android_dl` has no dependencies other than `node` (and some third party node libraries).
 
 # Command-line tools
 
