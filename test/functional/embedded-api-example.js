@@ -51,7 +51,10 @@ var envConfig = {
   // script (part of this project; see the README for details)
   xwalkAndroidDir: xwalkAndroidDir,
 
-  arch: arch
+  arch: arch,
+
+  // make an embedded mode apk
+  embedded: true
 };
 
 // application configuration
@@ -69,9 +72,6 @@ var appConfig = {
 
   // relative path from appRoot of the entry HTML file for your app
   appLocalPath: 'index.html',
-
-  // make an embedded mode apk
-  embedded: true,
 
   remoteDebugging: true,
 
@@ -96,7 +96,7 @@ Api.Q.all([envPromise, appPromise])
 
     // set up the locations data for this App
     // create a Locations object, which sets up paths for build artefacts
-    var locations = Api.Locations(app.sanitisedName, app.pkg, env.arch, outDir);
+    var locations = Api.Locations(app, env, outDir);
 
     // show the finalised configuration
     console.log('ENV CONFIGURATION:');

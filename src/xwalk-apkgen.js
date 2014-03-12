@@ -126,6 +126,12 @@ var cliOpts = {
     default: Env.CONFIG_DEFAULTS.arch
   },
 
+  'embedded': {
+    describe: 'set to true to enable embedded mode; or false for shared mode',
+    section: 'Environment (env)',
+    defaultDescription: Env.CONFIG_DEFAULTS.embedded
+  },
+
   // app required (if no app-config file)
   'appRoot': {
     alias: 'app-root',
@@ -200,11 +206,6 @@ var cliOpts = {
     default: (App.CONFIG_DEFAULTS.embedded === true ? 'embedded' : 'shared')
   },
 
-  'embedded': {
-    describe: 'set to true to enable embedded mode',
-    section: 'Application (app)'
-  },
-
   // help
   'help': {
     alias: 'h',
@@ -263,17 +264,17 @@ _.each(App.CONFIG_DEFAULTS, function (value, key) {
 // set the extensions key for appConfig
 appConfig.extensions = extensions;
 
-// set the mode for the app
-appConfig.embedded = nconf.get('embedded');
-if (appConfig.embedded === undefined) {
-  appConfig.embedded = (nconf.get('mode') === 'embedded');
-}
-
 // get properties for Env
 var envConfig = {};
 _.each(Env.CONFIG_DEFAULTS, function (value, key) {
   envConfig[key] = nconf.get(key);
 });
+
+// set the mode
+envConfig.embedded = nconf.get('embedded');
+if (envConfig.embedded === undefined) {
+  envConfig.embedded = (nconf.get('mode') === 'embedded');
+}
 
 // START
 logger.log('\n*** STARTING BUILD');
@@ -292,7 +293,7 @@ Q.all([
     var app = objects[0];
     var env = objects[1];
 
-    var locations = Locations(app.sanitisedName, app.pkg, env.arch, outDir);
+    var locations = Locations(app, env, outDir);
 
     // configuration done
     logger.log('\n*** APPLICATION:');

@@ -18,16 +18,21 @@ var app = {
   activityClassName: 'AppOneActivity'
 };
 
+var env = {
+  arch: 'x86',
+  embedded: true
+};
+
 var tmpdir = (os.tmpdir || os.tmpDir)();
 
 describe('locations', function () {
   it('should set default destination to tmp dir for os', function () {
-    var locations = Locations(app.sanitisedName, app.pkg, 'x86');
+    var locations = Locations(app, env);
     locations.destDir.should.eql(path.join(tmpdir, 'xwalk-apk-gen'));
   });
 
   it('should set destination dir when passed to constructor', function () {
-    var locations = Locations(app.sanitisedName, app.pkg, 'x86', '/out');
+    var locations = Locations(app, env, '/out');
     locations.destDir.should.eql(pr('/out'));
   });
 
@@ -37,25 +42,25 @@ describe('locations', function () {
       Locations()
     };
 
-    expect(func1).to.throw(Error, /name/);
+    expect(func1).to.throw(Error, /sanitisedName/);
 
     // missing pkg
     var func2 = function () {
-      Locations('boo');
+      Locations({sanitisedName: 'boo'});
     };
 
     expect(func2).to.throw(Error, /pkg/);
 
-    // missing arch
+    // missing embedded
     var func3 = function () {
-      Locations('boo', 'bar');
+      Locations({sanitisedName: 'boo', pkg: 'bar'}, {arch: 'x86'});
     };
 
-    expect(func3).to.throw(Error, /arch/);
+    expect(func3).to.throw(Error, /embedded/);
   });
 
   it('should set destination paths when configured for an app', function () {
-    var locations = Locations(app.sanitisedName, app.pkg, 'x86', '/out');
+    var locations = Locations(app, env, '/out');
 
     locations.classesDir.should.eql(pr('/out/classes'));
     locations.dexFile.should.eql(pr('/out/classes.dex'));

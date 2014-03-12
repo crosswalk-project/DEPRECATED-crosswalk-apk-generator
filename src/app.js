@@ -99,10 +99,6 @@ var replaceInvalidChars = function (value, mode) {
  * member ITEM in the array is used to create an element in the manifest like:
  * <code>&lt;uses-permission android:name="android.permission.ITEM"/&gt;</code>
  * see {@link App.CONFIG_DEFAULTS} for details
- * @param {boolean} [config.embedded=App.CONFIG_DEFAULTS.embedded] -
- * set to true to bundle Crosswalk with the output apk file, false
- * to use shared mode (requires XWalkRuntimeLib.apk to installed
- * on the device to run the application)
  * @param {object} [deps] - dependent objects this instance requires
  * @param {Finder} [deps.finder=vanilla Finder] - {@link Finder} object
  * for testing directory and file locations
@@ -138,7 +134,6 @@ var App = function (config, deps) {
  * @property {string} theme - set to 'Theme.Holo.Light.NoActionBar'
  * @property {boolean} fullscreen - set to true
  * @property {boolean} remoteDebugging - set to false
- * @property {boolean} embedded - set to false
  */
 App.CONFIG_DEFAULTS = {
   name: null,
@@ -164,7 +159,6 @@ App.CONFIG_DEFAULTS = {
   jars: [],
   javaSrcDirs: [],
   extensions: null,
-  embedded: true,
   version: null,
   orientation: null
 };
