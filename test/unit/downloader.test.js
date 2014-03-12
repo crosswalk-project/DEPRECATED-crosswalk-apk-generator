@@ -71,6 +71,15 @@ StubHttpStream.prototype.triggerEvents = function () {
   this.emit('end');
 };
 
+// stub HttpClient
+var StubHttpClient = function (stubHttpStream) {
+  this.stubHttpStream = stubHttpStream;
+};
+
+StubHttpClient.prototype.getStream = function () {
+  return this.stubHttpStream;
+};
+
 describe('Downloader', function () {
 
   it('should reject if an error occurs during HTTP request', function (done) {
@@ -80,11 +89,10 @@ describe('Downloader', function () {
       {name: 'error', data: new Error('network connection lost')}
     ]);
 
-    var downloader = Downloader({
-      createHttpStream: function () {
-        return stream;
-      },
+    var stubHttpClient = new StubHttpClient(stream);
 
+    var downloader = Downloader({
+      httpClient: stubHttpClient,
       fs: new StubFs(false)
     });
 
@@ -96,7 +104,7 @@ describe('Downloader', function () {
 
   it('should reject if the output filename already exists', function (done) {
     var downloader = Downloader({
-      createHttpStream: function () {},
+      stubHttpClient: new StubHttpClient(),
 
       // this stub returns true for existsSync()
       fs: new StubFs(true)
@@ -113,21 +121,20 @@ describe('Downloader', function () {
     // stub stream; once the downloader is set up, we can trigger
     // its pretend events
     var stream = new StubHttpStream([
-      {name: 'meta', data: {responseHeaders: {'content-length': 8}}},
+      {name: 'response', data: {headers: {'content-length': 8}}},
       {name: 'data', data: 'aa'},
       {name: 'data', data: 'bb'},
       {name: 'data', data: 'cc'},
       {name: 'data', data: 'dd'}
     ]);
 
+    var stubHttpClient = new StubHttpClient(stream);
+
     // we use this to record progress notifications
     var progressCb = sinon.spy();
 
     var downloader = Downloader({
-      createHttpStream: function () {
-        return stream;
-      },
-
+      httpClient: stubHttpClient,
       fs: new StubFs(false)
     });
 

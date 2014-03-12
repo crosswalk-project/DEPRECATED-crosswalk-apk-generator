@@ -106,9 +106,11 @@ If you're not sure which versions are available, you can invoke the script with 
 
 Using the `--query` option with `--json` will output the query results in JSON format instead of the default human-readable format.
 
-Invoke the script with the `--help` option to see the full range of options.
+The script also supports proxies (though it's only been tested with plain http proxies, and not with https ones). To use a proxy, pass the `--proxy` option, for example:
 
-**Note:** I haven't tested this with proxy servers, so I've no idea if it works in that context or not.
+    xwalk_android_dl --query --proxy https://myproxy.com:8080
+
+To see the full range of options, invoke the script with the `--help` option.
 
 ## xwalk_apkgen: create an apk
 

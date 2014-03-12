@@ -28,16 +28,7 @@ var Downloader = function (deps) {
 
   deps = deps || {};
 
-  this.createHttpStream = deps.createHttpStream;
-
-  if (!this.createHttpStream) {
-    var fetch = require('fetch');
-
-    this.createHttpStream = function (downloadUrl) {
-      return new fetch.FetchStream(downloadUrl);
-    };
-  }
-
+  this.httpClient = deps.httpClient || require('./http-client')();
   this.fs = deps.fs || fs;
 };
 
@@ -74,16 +65,17 @@ Downloader.prototype.download = function (downloadUrl, outDir) {
   var contentLength = 1;
   var downloaded = 0;
   var lastNotifiedPercent = 0;
+  var errorOccurred = false;
 
-  var fetcher = this.createHttpStream(downloadUrl);
+  var req = this.httpClient.getStream(downloadUrl);
 
   // first time we get any metadata we can set the real content length
-  fetcher.on('meta', function (meta) {
-    contentLength = meta.responseHeaders['content-length'];
+  req.on('response', function (response) {
+    contentLength = response.headers['content-length'];
   });
 
   // notify each time the percentage downloaded changes
-  fetcher.on('data', function (data) {
+  req.on('data', function (data) {
     downloaded += parseInt(data.length, 10);
 
     var percent = parseInt((downloaded / contentLength) * 100, 10);
@@ -94,20 +86,30 @@ Downloader.prototype.download = function (downloadUrl, outDir) {
     }
   });
 
-  fetcher.on('end', function () {
+  req.on('end', function (err) {
+    if (err) {
+      dfd.reject(err);
+
+      // turn off listeners for the "finish" event, as we don't want
+      // them to fire and resolve the promise
+      errorOccurred = true;
+    }
+
     outFile.end();
   });
 
-  fetcher.on('error', function (e) {
-    dfd.reject(e);
+  req.on('error', function (err) {
+    dfd.reject(err);
   });
 
   // this is when we're really done
   outFile.on('finish', function () {
-    dfd.resolve(outFilePath, outFile);
+    if (!errorOccurred) {
+      dfd.resolve(outFilePath, outFile);
+    }
   });
 
-  fetcher.pipe(outFile);
+  req.pipe(outFile);
 
   return promise;
 };

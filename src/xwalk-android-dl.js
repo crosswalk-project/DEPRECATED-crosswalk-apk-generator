@@ -1,4 +1,6 @@
 /*jslint node: true*/
+/* turn off lint errors caused by http_proxy environment variable */
+/* jshint -W106 */
 'use strict';
 
 /* Copyright (c) 2014 Intel Corporation. All rights reserved.
@@ -12,9 +14,10 @@ var Q = require('q');
 
 var logger = require('./console-logger')();
 var Env = require('./env');
+var Downloader = require('./downloader');
+var HttpClient = require('./http-client');
 var ArchiveFetcher = require('./archive-fetcher');
 var VersionsFetcher = require('./versions-fetcher');
-var versionsFetcher = VersionsFetcher();
 var generalUsage = require('./usage');
 
 // configure
@@ -76,6 +79,11 @@ var opts = {
     describe: 'name of the xwalk_app_template tarball inside the xwalk-android zip file'
   },
 
+  proxy: {
+    describe: 'HTTP proxy to use for queries and downloads (http:// proxies only)',
+    defaultDescription: '$http_proxy environment variable'
+  },
+
   help: {
     alias: 'h',
     describe: 'show this help message and exit'
@@ -90,6 +98,13 @@ var params = {
   channel: nconf.get('channel'),
   version: nconf.get('version')
 };
+
+// proxy configuration
+var proxy = nconf.get('proxy') || process.env.http_proxy;
+
+if (proxy) {
+  logger.log('using proxy: ' + proxy);
+}
 
 // generic error handler
 var errorHandler = function (err) {
@@ -112,10 +127,17 @@ var showParams = function (params) {
   }
 };
 
-// fetch an xwalk-android zip file
-var fetch = function (nconf, logger, versionsFetcher) {
-  var archiveFetcher = ArchiveFetcher({logger: logger});
+// build objects
+var httpClient = HttpClient({proxy: proxy});
+var versionsFetcher = VersionsFetcher({httpClient: httpClient});
+var downloader = Downloader({httpClient: httpClient});
+var archiveFetcher = ArchiveFetcher({
+  downloader: downloader,
+  logger: logger
+});
 
+// fetch an xwalk-android zip file
+var fetch = function () {
   // derive the tarballName and outDir
   var tarballName = nconf.get('tarballName');
   var outDir = nconf.get('outDir');
@@ -175,14 +197,7 @@ var fetch = function (nconf, logger, versionsFetcher) {
   );
 };
 
-// help
-if (nconf.get('help')) {
-  var msg = generalUsage('Download and unpack an xwalk-android tarball', opts);
-  logger.log(msg);
-  process.exit(0);
-}
-// query: show all versions for arch and channel
-else if (nconf.get('query')) {
+var getVersions = function () {
   versionsFetcher.getDownloads(nconf.get('arch'), nconf.get('channel'))
   .done(
     function (results) {
@@ -214,8 +229,21 @@ else if (nconf.get('query')) {
 
     errorHandler
   );
+};
+
+// MAIN
+
+// help
+if (nconf.get('help')) {
+  var msg = generalUsage('Download and unpack an xwalk-android tarball', opts);
+  logger.log(msg);
+  process.exit(0);
+}
+// query: show all versions for arch and channel
+else if (nconf.get('query')) {
+  getVersions();
 }
 // fetch
 else {
-  fetch(nconf, logger, versionsFetcher);
+  fetch();
 }

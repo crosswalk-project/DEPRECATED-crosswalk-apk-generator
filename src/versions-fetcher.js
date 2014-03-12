@@ -23,7 +23,7 @@ var VersionsFetcher = function (deps) {
 
   deps = deps || {};
 
-  this.urlFetchFn = deps.urlFetchFn || require('fetch').fetchUrl;
+  this.httpClient = deps.httpClient || require('./http-client')();
 };
 
 /**
@@ -135,18 +135,7 @@ var getVersionString = function (name) {
  * or rejects with an error.
  */
 VersionsFetcher.prototype.getUrl = function (url) {
-  var dfd = Q.defer();
-
-  this.urlFetchFn(url, {}, function (error, meta, body) {
-    if (error) {
-      dfd.reject(error);
-    }
-    else {
-      dfd.resolve(body);
-    }
-  });
-
-  return dfd.promise;
+  return this.httpClient.get(url);
 };
 
 /**
@@ -159,7 +148,7 @@ VersionsFetcher.prototype.getUrl = function (url) {
  *
  * Example output:
 
- { url: 'https://download.01.org/crosswalk/releases/android-x86/stable/',
+ { url: 'http://download.01.org/crosswalk/releases/android-x86/stable/',
    arch: 'x86',
    channel: 'stable',
    files:
