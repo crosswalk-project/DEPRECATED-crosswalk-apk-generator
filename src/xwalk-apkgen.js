@@ -57,12 +57,6 @@ var cliOpts = {
     describe: 'output directory for apk and other build files'
   },
 
-  'verbose': {
-    alias: 'v',
-    default: false,
-    describe: 'set to true to show shell commands'
-  },
-
   // config files; these work as shortcuts for defining app,
   // env or extension configuration
   'app-config': {
@@ -251,8 +245,6 @@ if (configFile) {
 // we need an absolute location for outDir to avoid errors when
 // running Ant
 var outDir = path.resolve(nconf.get('outDir'));
-
-var verbose = nconf.get('verbose');
 /*** end of property parsing ***/
 
 // get the properties for App
@@ -279,7 +271,7 @@ if (envConfig.embedded === undefined) {
 // START
 logger.log('\n*** STARTING BUILD');
 
-var commandRunner = CommandRunner(verbose);
+var commandRunner = CommandRunner();
 
 logger.log('\n*** CHECKING ENVIRONMENT...');
 

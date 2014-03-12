@@ -35,7 +35,7 @@ describe('DxWrapper', function () {
     dxWrapper.compile(options)
     .done(
       function () {
-        spy.should.have.been.calledWith(expected, sinon.match.string);
+        spy.should.have.been.calledWith(expected);
         spy.restore();
         done();
       },

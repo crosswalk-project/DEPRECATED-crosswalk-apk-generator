@@ -377,7 +377,7 @@ var locateXwalkPieces = function (finder, config) {
  * password for the keystore
  * @param {object} [deps] - optional helper objects
  * @param {CommandRunner} [deps.commandRunner] - defaults to
- * a {@link CommandRunner} with verbosity set to false
+ * a plain {@link CommandRunner}
  * @param {AppSkeleton} [deps.appSkeleton] - defaults to a vanilla
  * {@link AppSkeleton}
  * @param {Finder} [deps.finder] - defaults to a vanilla
@@ -399,7 +399,7 @@ var Env = function (config, deps) {
    * @type CommandRunner
    * @instance
    */
-  this._commandRunner = deps.commandRunner || require('./command-runner')(false);
+  this._commandRunner = deps.commandRunner || require('./command-runner')();
 
   /**
    * @member

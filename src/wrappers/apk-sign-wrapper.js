@@ -79,7 +79,7 @@ ApkSignWrapper.prototype.apksign = function (unsignedApk, signedApk) {
 
   var cmd = this.jarsigner + ' ' + args.join(' ');
 
-  return this.commandRunner.run(cmd, 'Creating signed apk ' + signedApk);
+  return this.commandRunner.run(cmd);
 };
 
 /**
@@ -108,7 +108,7 @@ ApkSignWrapper.prototype.apkalign = function (signedApk, finalApk) {
 
   var cmd = this.zipalign + ' ' + args.join(' ');
 
-  return this.commandRunner.run(cmd, 'Aligning apk file ' + finalApk);
+  return this.commandRunner.run(cmd);
 };
 
 /**

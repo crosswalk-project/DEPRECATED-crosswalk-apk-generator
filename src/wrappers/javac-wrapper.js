@@ -120,7 +120,7 @@ JavacWrapper.prototype.compile = function (options) {
 
       var cmd = self.javac + ' ' + args.join(' ');
 
-      self.commandRunner.run(cmd, 'Compiling classes with javac')
+      self.commandRunner.run(cmd)
       .then(dfd.resolve, dfd.reject);
     }
   });

@@ -58,10 +58,7 @@ DxWrapper.prototype.compile = function (options) {
 
   var cmd = this.dx + ' ' + args.join(' ');
 
-  var msg = 'Compiling .class files with dx to generate .dex ' +
-            'file in ' + options.dexFile;
-
-  return this.commandRunner.run(cmd, msg);
+  return this.commandRunner.run(cmd);
 };
 
 module.exports = DxWrapper;

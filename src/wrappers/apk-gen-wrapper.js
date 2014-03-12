@@ -114,9 +114,8 @@ ApkGenWrapper.prototype.packageUnsigned = function (options) {
   args.push('-buildfile ' + this.xwalkApkPackageAntFile);
 
   var cmd = this.ant + ' ' + args.join(' ');
-  var msg = 'Creating unsigned apk in ' + options.unsignedApk;
 
-  return this.commandRunner.run(cmd, msg);
+  return this.commandRunner.run(cmd);
 };
 
 module.exports = ApkGenWrapper;
