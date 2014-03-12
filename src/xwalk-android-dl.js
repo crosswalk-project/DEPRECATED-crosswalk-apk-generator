@@ -18,7 +18,6 @@ var Downloader = require('./downloader');
 var HttpClient = require('./http-client');
 var ArchiveFetcher = require('./archive-fetcher');
 var VersionsFetcher = require('./versions-fetcher');
-var versionsFetcher = VersionsFetcher();
 var generalUsage = require('./usage');
 
 // configure
@@ -103,6 +102,10 @@ var params = {
 // proxy configuration
 var proxy = nconf.get('proxy') || process.env.http_proxy;
 
+if (proxy) {
+  logger.log('using proxy: ' + proxy);
+}
+
 // generic error handler
 var errorHandler = function (err) {
   logger.error(err.message);
@@ -124,15 +127,17 @@ var showParams = function (params) {
   }
 };
 
-// fetch an xwalk-android zip file
-var fetch = function (nconf, logger, versionsFetcher) {
-  var httpClient = HttpClient({proxy: proxy});
-  var downloader = Downloader({httpClient: httpClient});
-  var archiveFetcher = ArchiveFetcher({
-    downloader: downloader,
-    logger: logger
-  });
+// build objects
+var httpClient = HttpClient({proxy: proxy});
+var versionsFetcher = VersionsFetcher({httpClient: httpClient});
+var downloader = Downloader({httpClient: httpClient});
+var archiveFetcher = ArchiveFetcher({
+  downloader: downloader,
+  logger: logger
+});
 
+// fetch an xwalk-android zip file
+var fetch = function () {
   // derive the tarballName and outDir
   var tarballName = nconf.get('tarballName');
   var outDir = nconf.get('outDir');
@@ -192,14 +197,7 @@ var fetch = function (nconf, logger, versionsFetcher) {
   );
 };
 
-// help
-if (nconf.get('help')) {
-  var msg = generalUsage('Download and unpack an xwalk-android tarball', opts);
-  logger.log(msg);
-  process.exit(0);
-}
-// query: show all versions for arch and channel
-else if (nconf.get('query')) {
+var getVersions = function () {
   versionsFetcher.getDownloads(nconf.get('arch'), nconf.get('channel'))
   .done(
     function (results) {
@@ -231,8 +229,21 @@ else if (nconf.get('query')) {
 
     errorHandler
   );
+};
+
+// MAIN
+
+// help
+if (nconf.get('help')) {
+  var msg = generalUsage('Download and unpack an xwalk-android tarball', opts);
+  logger.log(msg);
+  process.exit(0);
+}
+// query: show all versions for arch and channel
+else if (nconf.get('query')) {
+  getVersions();
 }
 // fetch
 else {
-  fetch(nconf, logger, versionsFetcher);
+  fetch();
 }

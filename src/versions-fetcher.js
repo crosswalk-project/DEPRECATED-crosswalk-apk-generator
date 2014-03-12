@@ -148,7 +148,7 @@ VersionsFetcher.prototype.getUrl = function (url) {
  *
  * Example output:
 
- { url: 'https://download.01.org/crosswalk/releases/android-x86/stable/',
+ { url: 'http://download.01.org/crosswalk/releases/android-x86/stable/',
    arch: 'x86',
    channel: 'stable',
    files:
