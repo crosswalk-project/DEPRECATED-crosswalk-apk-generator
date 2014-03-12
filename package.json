@@ -1,6 +1,6 @@
 {
   "name": "crosswalk-apk-generator",
-  "version": "0.0.11",
+  "version": "0.0.12",
   "description": "Generator for Crosswalk Android apk packages",
   "main": "index.js",
   "bin": {
