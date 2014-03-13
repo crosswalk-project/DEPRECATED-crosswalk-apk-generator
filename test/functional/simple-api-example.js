@@ -101,6 +101,8 @@ Api.Q.all([envPromise, appPromise])
     logger.log('APP CONFIGURATION:');
     logger.logPublicProperties(app);
 
+    logger.spinStart();
+
     // run the build
     return env.build(app, locations);
   }
@@ -108,11 +110,13 @@ Api.Q.all([envPromise, appPromise])
 .done(
   // success
   function (finalApk) {
+    logger.spinStop();
     logger.log('\n*** DONE\n    output apk path is ' + finalApk);
   },
 
   // any errors should fall down to this handler
   function (err) {
+    logger.spinStop();
     logger.log('!!! ERROR');
     logger.log(err.stack);
   }
