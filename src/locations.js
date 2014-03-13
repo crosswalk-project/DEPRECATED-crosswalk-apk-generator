@@ -41,30 +41,34 @@ var argsToArray = function (args) {
  * determine the output locations for generated files.</p>
  * @constructor
  *
- * @param {string} name - sanitised version of the app name, valid for use in
- * file names
- * @param {string} pkg - name of the Java package to put the activity into
- * @param {string} arch - architecture to create output paths for (e.g.
- * 'x86' or 'arm'); this is primarily appended to name to produce the
- * output apk filenames, e.g. MyApp.x86.apk
+ * @param {App} app - App instance
+ * @param {Env} env - Env instance
  * @param {string} [destDir="/tmp/xwalk-apk-gen"] - destination directory
  * for output application skeleton files and apks
  *
  * @throws Error if name or pkg are not set
  */
-var Locations = function (name, pkg, arch, destDir) {
+var Locations = function (app, env, destDir) {
   if (!(this instanceof Locations)) {
-    return new Locations(name, pkg, arch, destDir);
+    return new Locations(app, env, destDir);
   }
 
+  app = app || {};
+  env = env || {};
+
+  var name = app.sanitisedName;
+  var pkg = app.pkg;
+  var embedded = env.embedded;
+  var arch = env.arch;
+
   if (typeof name !== 'string') {
-    throw new Error('name should be a string');
+    throw new Error('app.sanitisedName should be a string');
   }
   else if (typeof pkg !== 'string') {
-    throw new Error('pkg should be a string');
+    throw new Error('app.pkg should be a string');
   }
-  else if (typeof arch !== 'string') {
-    throw new Error('arch should be a string');
+  else if (embedded !== true && embedded !== false) {
+    throw new Error('env.embedded should be a boolean');
   }
 
   /**
@@ -78,6 +82,16 @@ var Locations = function (name, pkg, arch, destDir) {
   }
   else {
     this.destDir = path.join(tmpdir, 'xwalk-apk-gen');
+  }
+
+  // apk suffixes; NB the suffix for the resource package has to
+  // be .ap_, otherwise the Ant task can't find it
+  var resPackageSuffix = '.ap_';
+  var apkSuffix = '.apk';
+
+  if (embedded) {
+    resPackageSuffix = '.' + arch + resPackageSuffix;
+    apkSuffix = '.' + arch + apkSuffix;
   }
 
   // jars from the xwalk_app_template are added by the Env at build time
@@ -158,7 +172,7 @@ var Locations = function (name, pkg, arch, destDir) {
    * @type string
    * @instance
    */
-  this.resPackageApk = path.join(this.destDir, name + '.' + arch + '.ap_');
+  this.resPackageApk = path.join(this.destDir, name + resPackageSuffix);
 
   /**
    * @desc location for the unsigned apk
@@ -166,7 +180,7 @@ var Locations = function (name, pkg, arch, destDir) {
    * @type string
    * @instance
    */
-  this.unsignedApk = path.join(this.destDir, name + '-unsigned.' + arch + '.apk');
+  this.unsignedApk = path.join(this.destDir, name + '-unsigned' + apkSuffix);
 
   /**
    * @desc location for the signed (but unaligned) apk
@@ -174,7 +188,7 @@ var Locations = function (name, pkg, arch, destDir) {
    * @type string
    * @instance
    */
-  this.signedApk = path.join(this.destDir, name + '-signed.' + arch + '.apk');
+  this.signedApk = path.join(this.destDir, name + '-signed' + apkSuffix);
 
   /**
    * @desc location for the final apk (signed and aligned)
@@ -182,7 +196,7 @@ var Locations = function (name, pkg, arch, destDir) {
    * @type string
    * @instance
    */
-  this.finalApk = path.join(this.destDir, name + '.' + arch + '.apk');
+  this.finalApk = path.join(this.destDir, name + apkSuffix);
 
   /**
    * @desc location for resource files; this will have a generated

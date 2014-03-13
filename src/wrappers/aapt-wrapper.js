@@ -89,7 +89,7 @@ AaptWrapper.prototype.generateRJava = function (options) {
   var cmd = this.aapt + ' package ' + args.join(' ');
 
   // generate R.java file
-  return this.commandRunner.run(cmd, 'Generating R.java file with aapt');
+  return this.commandRunner.run(cmd);
 };
 
 /**
@@ -135,9 +135,7 @@ AaptWrapper.prototype.packageResources = function (options) {
   // generate the apk file
   var cmd = this.aapt + ' package ' + args.join(' ');
 
-  var msg = 'Making intermediate apk for resources in ' + outApk;
-
-  return this.commandRunner.run(cmd, msg);
+  return this.commandRunner.run(cmd);
 };
 
 module.exports = AaptWrapper;

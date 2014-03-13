@@ -103,7 +103,7 @@ Now we have the configuration, we can build the App and Env objects and run a bu
         var app = objects[1];
 
         // create a Locations object for this App instance
-        var locations = Api.Locations(app.sanitisedName, app.pkg, env.arch, outDir);
+        var locations = Api.Locations(app, env, outDir);
 
         // show the finalised configuration
         console.log('ENV CONFIGURATION:');

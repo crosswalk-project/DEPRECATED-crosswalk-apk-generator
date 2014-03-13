@@ -333,6 +333,10 @@ var locateXwalkPieces = function (finder, config) {
  * @param {string} [config.arch=arm] - architecture to build for; "x86" or "arm"
  * @param {string} [config.aapt=derived from androidSDKDir] - location of the
  * aapt binary (part of the Android SDK)
+ * @param {boolean} [config.embedded=Env.CONFIG_DEFAULTS.embedded] -
+ * set to true to bundle Crosswalk with the output apk file, false
+ * to use shared mode (requires XWalkRuntimeLib.apk to installed
+ * on the device to run the application)
  * @param {string} [config.dx=derived from androidSDKDir] - location of the
  * dx binary (part of the Android SDK)
  * @param {string} [config.anttasksJar=derived from androidSDKDir] - location
@@ -373,7 +377,7 @@ var locateXwalkPieces = function (finder, config) {
  * password for the keystore
  * @param {object} [deps] - optional helper objects
  * @param {CommandRunner} [deps.commandRunner] - defaults to
- * a {@link CommandRunner} with verbosity set to false
+ * a plain {@link CommandRunner}
  * @param {AppSkeleton} [deps.appSkeleton] - defaults to a vanilla
  * {@link AppSkeleton}
  * @param {Finder} [deps.finder] - defaults to a vanilla
@@ -395,7 +399,7 @@ var Env = function (config, deps) {
    * @type CommandRunner
    * @instance
    */
-  this._commandRunner = deps.commandRunner || require('./command-runner')(false);
+  this._commandRunner = deps.commandRunner || require('./command-runner')();
 
   /**
    * @member
@@ -437,6 +441,7 @@ var Env = function (config, deps) {
  * @property {string} sourceJavaVersion - set to "1.5"
  * @property {string} targetJavaVersion - set to "1.5"
  * @property {string} arch - set to "arm"
+ * @property {boolean} embedded - set to true
  * @property {string} androidAPILevel - "19"
  * @property {string} keystore - set to xwalk-android keystore
  * @property {string} keystoreAlias - set to "xwalkdebugkey"
@@ -451,6 +456,7 @@ Env.CONFIG_DEFAULTS = {
   sourceJavaVersion: '1.5',
   targetJavaVersion: '1.5',
   arch: 'x86',
+  embedded: true,
 
   androidSDKDir: null,
   androidAPILevel: null,
@@ -531,7 +537,7 @@ Env.prototype.build = function (app, locations) {
 
   // if the app is in embedded mode, add jars and other resources
   // to support that
-  if (app.embedded) {
+  if (this.embedded) {
     locations.addJars(this.xwalkEmbeddedJar);
     locations.addAssets(this.xwalkAssets);
     locations.addNativeLibs(this.nativeLibs);

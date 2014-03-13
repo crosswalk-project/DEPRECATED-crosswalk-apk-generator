@@ -56,7 +56,7 @@ describe('AppSkeleton', function () {
   };
 
   // Locations object pointing at the output directory
-  var locations = Locations(app.sanitisedName, app.pkg, 'x86', outDir);
+  var locations = Locations(app, {arch: 'x86', embedded: true}, outDir);
 
   var appSkeleton = AppSkeleton();
 
