@@ -79,7 +79,7 @@ var appConfig = {
 };
 
 // create a promise for a configured Env object
-var envPromise = Api.Env(envConfig, {commandRunner: Api.CommandRunner(true)});
+var envPromise = Api.Env(envConfig, {commandRunner: Api.CommandRunner()});
 
 // create a promise for a configured App object
 var appPromise = Api.App(appConfig);
