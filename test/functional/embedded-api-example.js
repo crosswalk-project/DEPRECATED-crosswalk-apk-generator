@@ -21,13 +21,14 @@ var usage = 'Usage:\nnode ' + path.basename(process.argv[1]) +
 
 // load the crosswalk-apk-generator API
 var Api = require('../../index');
+var logger = Api.ConsoleLogger();
 
 // for simplicity, parse options from the command line; but you
 // can use whatever sources you wish
 var numArgs = process.argv.length;
 
 if (numArgs < 5) {
-  console.log(usage);
+  logger.log(usage);
   process.exit(1);
 }
 
@@ -99,10 +100,10 @@ Api.Q.all([envPromise, appPromise])
     var locations = Api.Locations(app, env, outDir);
 
     // show the finalised configuration
-    console.log('ENV CONFIGURATION:');
-    console.log(env);
-    console.log('APP CONFIGURATION:');
-    console.log(app);
+    logger.log('ENV CONFIGURATION:');
+    logger.logPublicProperties(env);
+    logger.log('APP CONFIGURATION:');
+    logger.logPublicProperties(app);
 
     // run the build
     return env.build(app, locations);
@@ -111,12 +112,12 @@ Api.Q.all([envPromise, appPromise])
 .done(
   // success
   function (finalApk) {
-    console.log('\n*** DONE\n    output apk path is ' + finalApk);
+    logger.log('\n*** DONE\n    output apk path is ' + finalApk);
   },
 
   // any errors should fall down to this handler
   function (err) {
-    console.log('!!! ERROR');
-    console.log(err.stack);
+    logger.log('!!! ERROR');
+    logger.log(err.stack);
   }
 );
