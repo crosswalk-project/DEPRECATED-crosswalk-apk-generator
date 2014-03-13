@@ -186,21 +186,23 @@ Crosswalk applications can run in one of two *modes*:
 
     (NB `adb` is the Android SDK installation tool; you will need it on your PATH for the above to work.)
 
+    The generator will build an application in shared mode if you don't specify any architecture. Specify the architecture by setting the `arch` property (if using the API) or the `--arch` option (if using `xwalk_apkgen`).
+
 *   *Embedded mode*
 
     An application in this mode includes the Crosswalk runtime inside its apk. Consequently, an embedded mode application is self-contained: it can be installed on an Android device without requiring the runtime library to be installed first. However, embedded mode apk files are platform-specific, unlike shared mode apk files: they will only work on the platform for which they were built.
 
-The default application mode can be modified by setting the `embedded` property for the application to `true`. This can be done in the App config if using the API, e.g.
+    The default application mode can be modified by setting the `arch` property for the application to either `x86` or `arm`. This can be done in the App config if using the API, e.g.
 
     {
       "appRoot": "/home/me/projects/myapp",
       "appLocalPath": "index.html",
       "name": "My app",
       "package": "me.myname.myapp",
-      "embedded": true
+      "arch": "x86"
     }
 
-or via the `--embedded` command line flag if using `xwalk_apkgen`:
+or via the `--arch` command line flag if using `xwalk_apkgen`:
 
     xwalk_apkgen --androidSDKDir /home/me/android-sdk-linux \
       --xwalkAndroidDir /home/me/xwalk-android/xwalk_app_template \
@@ -209,7 +211,7 @@ or via the `--embedded` command line flag if using `xwalk_apkgen`:
       --name "My app" \
       --package "me.myname.myapp" \
       --outDir build \
-      --embedded
+      --arch x86
 
 # Permissions
 

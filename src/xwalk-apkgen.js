@@ -115,15 +115,8 @@ var cliOpts = {
   },
 
   'arch': {
-    describe: 'Architecture to build for (x86 or arm)',
-    section: 'Environment (env)',
-    default: Env.CONFIG_DEFAULTS.arch
-  },
-
-  'embedded': {
-    describe: 'set to true to enable embedded mode; or false for shared mode',
-    section: 'Environment (env)',
-    defaultDescription: Env.CONFIG_DEFAULTS.embedded
+    describe: 'Architecture to build for (x86 or arm), undefined for shared',
+    section: 'Environment (env)'
   },
 
   // app required (if no app-config file)
@@ -192,14 +185,6 @@ var cliOpts = {
     default: App.CONFIG_DEFAULTS.jars
   },
 
-  'mode': {
-    describe: '"shared" to use the shared xwalk runtime library; "embedded" ' +
-              'to bundle the library with the app (NB this is retained for ' +
-              'backwards compatibility with make_apk.py)',
-    section: 'Application (app)',
-    default: (App.CONFIG_DEFAULTS.embedded === true ? 'embedded' : 'shared')
-  },
-
   // help
   'help': {
     alias: 'h',
@@ -261,12 +246,6 @@ var envConfig = {};
 _.each(Env.CONFIG_DEFAULTS, function (value, key) {
   envConfig[key] = nconf.get(key);
 });
-
-// set the mode
-envConfig.embedded = nconf.get('embedded');
-if (envConfig.embedded === undefined) {
-  envConfig.embedded = (nconf.get('mode') === 'embedded');
-}
 
 // START
 logger.log('\n*** STARTING BUILD');

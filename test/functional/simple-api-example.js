@@ -52,8 +52,7 @@ var envConfig = {
   // script (part of this project; see the README for details)
   xwalkAndroidDir: xwalkAndroidDir,
 
-  arch: arch,
-  embedded: true
+  arch: arch
 };
 
 // application configuration

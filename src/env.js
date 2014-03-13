@@ -213,7 +213,7 @@ var locateXwalkPieces = function (finder, config) {
   }
 
   // extra components required for embedded mode
-  if (!config.xwalkEmbeddedJar) {
+  if (config.arch && !config.xwalkEmbeddedJar) {
     xwalkPieces.xwalkEmbeddedJar = {
       files: ['xwalk_core_embedded.dex.jar', 'xwalk_runtime_embedded.dex.jar'],
       guessDirs: ['libs']
@@ -256,7 +256,7 @@ var locateXwalkPieces = function (finder, config) {
     };
   }
 
-  if (!config.nativeLibs) {
+  if (config.arch && !config.nativeLibs) {
     var nativeLibsDir = path.join('native_libs', 'armeabi-v7a', 'libs');
 
     if (config.arch === 'x86') {
@@ -268,7 +268,7 @@ var locateXwalkPieces = function (finder, config) {
     };
   }
 
-  if (!config.xwalkAssets) {
+  if (config.arch && !config.xwalkAssets) {
     xwalkPieces.xwalkAssets = {
       directory: 'native_libs_res'
     };
@@ -330,13 +330,9 @@ var locateXwalkPieces = function (finder, config) {
  * version string to pass to javac's "-source" option
  * @param {string} [config.targetJavaVersion=Env.CONFIG_DEFAULTS.targetJavaVersion] -
  * version string to pass to javac's "-target" option
- * @param {string} [config.arch=arm] - architecture to build for; "x86" or "arm"
+ * @param {string} [config.arch=arm] - architecture to build for; "x86" or "arm"; if this is not set, the apk will be built for shared mode
  * @param {string} [config.aapt=derived from androidSDKDir] - location of the
  * aapt binary (part of the Android SDK)
- * @param {boolean} [config.embedded=Env.CONFIG_DEFAULTS.embedded] -
- * set to true to bundle Crosswalk with the output apk file, false
- * to use shared mode (requires XWalkRuntimeLib.apk to installed
- * on the device to run the application)
  * @param {string} [config.dx=derived from androidSDKDir] - location of the
  * dx binary (part of the Android SDK)
  * @param {string} [config.anttasksJar=derived from androidSDKDir] - location
@@ -441,7 +437,6 @@ var Env = function (config, deps) {
  * @property {string} sourceJavaVersion - set to "1.5"
  * @property {string} targetJavaVersion - set to "1.5"
  * @property {string} arch - set to "arm"
- * @property {boolean} embedded - set to true
  * @property {string} androidAPILevel - "19"
  * @property {string} keystore - set to xwalk-android keystore
  * @property {string} keystoreAlias - set to "xwalkdebugkey"
@@ -455,8 +450,7 @@ Env.CONFIG_DEFAULTS = {
 
   sourceJavaVersion: '1.5',
   targetJavaVersion: '1.5',
-  arch: 'x86',
-  embedded: true,
+  arch: null,
 
   androidSDKDir: null,
   androidAPILevel: null,
@@ -537,7 +531,7 @@ Env.prototype.build = function (app, locations) {
 
   // if the app is in embedded mode, add jars and other resources
   // to support that
-  if (this.embedded) {
+  if (this.arch) {
     locations.addJars(this.xwalkEmbeddedJar);
     locations.addAssets(this.xwalkAssets);
     locations.addNativeLibs(this.nativeLibs);
