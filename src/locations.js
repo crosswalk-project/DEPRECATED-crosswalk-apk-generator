@@ -58,7 +58,6 @@ var Locations = function (app, env, destDir) {
 
   var name = app.sanitisedName;
   var pkg = app.pkg;
-  var embedded = env.embedded;
   var arch = env.arch;
 
   if (typeof name !== 'string') {
@@ -66,9 +65,6 @@ var Locations = function (app, env, destDir) {
   }
   else if (typeof pkg !== 'string') {
     throw new Error('app.pkg should be a string');
-  }
-  else if (embedded !== true && embedded !== false) {
-    throw new Error('env.embedded should be a boolean');
   }
 
   /**
@@ -89,7 +85,7 @@ var Locations = function (app, env, destDir) {
   var resPackageSuffix = '.ap_';
   var apkSuffix = '.apk';
 
-  if (embedded) {
+  if (arch) {
     resPackageSuffix = '.' + arch + resPackageSuffix;
     apkSuffix = '.' + arch + apkSuffix;
   }

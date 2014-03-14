@@ -38,7 +38,7 @@ $WD/make-apk.test.sh --arch $ARCH
 
 echo
 echo "--------------------- MAKE-APK-SHARED.TEST.SH"
-$WD/make-apk-shared.test.sh --arch $ARCH
+$WD/make-apk-shared.test.sh
 
 echo
 echo "--------------------- MAKE-APK-WITH_EXTENSIONS.TEST.SH"

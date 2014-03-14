@@ -19,8 +19,7 @@ var app = {
 };
 
 var env = {
-  arch: 'x86',
-  embedded: true
+  arch: 'x86'
 };
 
 var tmpdir = (os.tmpdir || os.tmpDir)();
@@ -50,13 +49,6 @@ describe('locations', function () {
     };
 
     expect(func2).to.throw(Error, /pkg/);
-
-    // missing embedded
-    var func3 = function () {
-      Locations({sanitisedName: 'boo', pkg: 'bar'}, {arch: 'x86'});
-    };
-
-    expect(func3).to.throw(Error, /embedded/);
   });
 
   it('should set destination paths when configured for an app', function () {

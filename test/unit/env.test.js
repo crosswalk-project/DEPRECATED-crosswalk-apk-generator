@@ -323,8 +323,7 @@ describe('Env.build()', function () {
       androidJar: '/me/android-sdk/android.jar',
       xwalkAndroidDir: '/me/xwalk_app_template',
       xwalkRuntimeClientJar: '/me/xwalk_app_template/libs/runtime.jar',
-      androidAPILevel: 19,
-      embedded: false
+      androidAPILevel: 19
     };
 
     Env(envConfig, helpers)
