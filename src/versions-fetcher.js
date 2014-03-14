@@ -122,10 +122,16 @@ var parseApacheIndex = function (url, content) {
   return _.sortBy(files, 'lastModified').reverse();
 };
 
-// get the version string from a xwalk-android filename
+// get the version string from a xwalk-android filename,
+// or null if it's not a valid crosswalk zip file
 var getVersionString = function (name) {
   var matches = name.match(crosswalkPackageNameRegex);
-  return matches[1];
+  if (matches && matches[1]) {
+    return matches[1];
+  }
+  else {
+    return null;
+  }
 };
 
 /**
@@ -181,9 +187,11 @@ VersionsFetcher.prototype.getDownloads = function (arch, channel) {
     function (content) {
       var entries = parseApacheIndex(url, content);
 
-      entries = _.map(entries, function (entry) {
+      entries = _.select(entries, function (entry) {
         entry.version = getVersionString(entry.name);
-        return entry;
+
+        // if no version string, don't include this entry
+        return entry.version;
       });
 
       return {
