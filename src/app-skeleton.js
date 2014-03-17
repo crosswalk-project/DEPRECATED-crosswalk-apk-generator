@@ -148,7 +148,9 @@ AppSkeleton.DEFAULT_SKELETON_DIR = path.join(
  */
 AppSkeleton.prototype.runTemplate = function (template, data) {
   var rawContent = fs.readFileSync(this.templates[template], 'utf8');
-  return _.template(rawContent, data);
+  var out = _.template(rawContent, data);
+  out.replace(/\n{2,}/g, '\n');
+  return out;
 };
 
 /**
@@ -296,10 +298,12 @@ AppSkeleton.prototype.generate = function (appData, locations) {
       shell.cp('-r', self.assets.values, locations.resDir);
 
       // copy content from appRoot to the assets directory
-      shell.cp('-r',
-        path.join(appData.appRoot, '*'),
-        locations.assetsDir
-      );
+      if (appData.appRoot) {
+        shell.cp('-r',
+          path.join(appData.appRoot, '*'),
+          locations.assetsDir
+        );
+      }
 
       // Activity java file location
       var activityClassName = titleCase(appData.sanitisedName) +

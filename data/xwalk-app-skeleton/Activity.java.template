@@ -35,11 +35,21 @@ public class <%= activityClassName %> extends XWalkRuntimeActivityBase {
     protected void didTryLoadRuntimeView(View runtimeView) {
         if (runtimeView != null) {
             setContentView(runtimeView);
-            getRuntimeView().loadAppFromUrl("file:///android_asset/<%= appLocalPath %>");
+            <%
+              var url;
+
+              if (appUrl) {
+                url = appUrl;
+              }
+              else {
+                url = "file:///android_asset/" + appLocalPath;
+              }
+            %>
+            getRuntimeView().loadAppFromUrl("<%= url %>");
         }
         else {
             TextView msgText = new TextView(this);
-            msgText.setText(R.string.dialog_message_install_runtime_lib);
+            msgText.setText("Crosswalk failed to initialize");
             msgText.setTextSize(36);
             msgText.setTextColor(Color.BLACK);
             setContentView(msgText);

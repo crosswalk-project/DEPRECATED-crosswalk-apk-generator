@@ -550,6 +550,7 @@ Env.prototype.build = function (app, locations) {
     icon: app.icon,
     permissions: app.getPermissions(),
     theme: app.theme,
+    appUrl: app.appUrl,
     appRoot: app.appRoot,
     appLocalPath: app.appLocalPath,
     javaSrcDirs: javaSrcDirs,

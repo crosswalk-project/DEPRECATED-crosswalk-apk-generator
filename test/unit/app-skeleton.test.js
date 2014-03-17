@@ -47,6 +47,7 @@ describe('AppSkeleton', function () {
     theme: 'Boogles.Theme',
     appRoot: path.join(__dirname, 'test-app'),
     appLocalPath: 'index.html',
+    appUrl: null,
     remoteDebugging: true,
     targetSdkVersion: 19,
     javaSrcDirs: [],
@@ -213,6 +214,10 @@ describe('AppSkeleton', function () {
   });
 
   it('should copy extra files if app has extensions', function () {
+    // TODO
+  });
+
+  it('should not copy files if appUrl is set', function () {
     // TODO
   });
 
