@@ -36,6 +36,8 @@ var ConsoleLogger = function () {
     return new ConsoleLogger();
   }
 
+  this.spinInterval = null;
+
   _.extend(this, console);
 };
 
@@ -64,6 +66,35 @@ ConsoleLogger.prototype.replace = function (msg) {
  */
 ConsoleLogger.prototype.logPublicProperties = function (obj) {
   console.log(copyPublic(obj, {}));
+};
+
+/**
+ * Show a "spinner" to indicate something is still happening
+ */
+ConsoleLogger.prototype.spinStart = function () {
+  if (this.spinInterval) {
+    return;
+  }
+
+  var self = this;
+  var states = ['-', '\\', '|', '/'];
+  var i = 0;
+
+  this.spinInterval = setInterval(function () {
+    self.replace('Working... ' + states[i]);
+    i++;
+
+    if (i === states.length) {
+      i = 0;
+    }
+  }, 500);
+};
+
+ConsoleLogger.prototype.spinStop = function () {
+  if (this.spinInterval) {
+    clearInterval(this.spinInterval);
+    this.replace('');
+  }
 };
 
 module.exports = ConsoleLogger;

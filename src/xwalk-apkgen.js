@@ -275,13 +275,15 @@ Q.all([
     logger.logPublicProperties(locations);
 
     // make the apk for this environment
-    logger.log('\n*** CREATING APPLICATION SKELETON IN ' + outDir);
+    logger.log('\n*** BUILDING APPLICATION IN ' + outDir);
+    logger.spinStart();
 
     return env.build(app, locations);
   }
 )
 .done(
   function (finalApk) {
+    logger.spinStop();
     var end = new Date();
     var msecs = end.getTime() - start.getTime();
     var secs = (msecs / 1000);
@@ -290,9 +292,10 @@ Q.all([
   },
 
   function (e) {
-    console.error('!!!!!!! error occurred');
+    logger.spinStop();
+    logger.error('!!!!!!! error occurred');
     logger.log();
-    console.error(e.stack);
+    logger.error(e.stack);
     logger.log();
     logger.log('show options by calling this script with the --help option');
     process.exit(1);
