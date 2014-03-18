@@ -132,6 +132,12 @@ var cliOpts = {
     section: 'Application (app)'
   },
 
+  'appUrl': {
+    alias: 'app-url',
+    describe: 'URL of main HTML page for app',
+    section: 'Application (app)'
+  },
+
   'name': {
     describe: 'application name',
     section: 'Application (app)'
