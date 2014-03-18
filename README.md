@@ -85,7 +85,7 @@ Though the beta channel is the default, you can download the latest version from
 
     xwalk_android_dl --channel canary
 
-Pass the `--arch` option to download the latest version for a particular architecture:
+Pass the `--arch` option to download the latest version for a particular architecture (if not set, the default is `x86`):
 
     xwalk_android_dl --arch arm --channel canary
 
