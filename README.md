@@ -40,7 +40,6 @@ Although scripts for packaging HTML5 apps already exist in [the Crosswalk Androi
 
 So far, the APIs and scripts provided by this project replicate most of the functionality of the existing Crosswalk Android scripts, with the following exceptions:
 
-*   No support for the `--app-url` option (to wrap a Crosswalk app around a remote website)
 *   No support for the `--app-versionCode` option
 *   No support for generating an apk from a Crosswalk manifest via a `--manifest` option
 *   Icon png files are not crunched using aapt during the build, as they are by `make_apk.py`. However, the crosswalk.png images in the `res/drawable-*` directories have been optimised using [imagemin](https://github.com/ksky521/imagemin) to reduce their size. We leave it to the packager's discretion to optimise their png files if using custom icons.
