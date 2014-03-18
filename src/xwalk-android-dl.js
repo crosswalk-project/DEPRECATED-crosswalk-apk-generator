@@ -107,6 +107,7 @@ if (proxy) {
 
 // generic error handler
 var errorHandler = function (err) {
+  logger.error('ERROR; action was aborted; error was:');
   logger.error(err.message);
   logger.error(err.stack);
   process.exit(1);

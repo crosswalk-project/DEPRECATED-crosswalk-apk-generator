@@ -65,7 +65,24 @@ Downloader.prototype.download = function (downloadUrl, outDir) {
   var contentLength = 1;
   var downloaded = 0;
   var lastNotifiedPercent = 0;
+
+  // this is set to true to turn off listeners for the "finish" event,
+  // as we don't want them to fire and resolve the promise if an
+  // error occurs at any point
   var errorOccurred = false;
+
+  // run this to clean up any truncated/unfinished output files
+  // and flag an error
+  var handleError = function (err) {
+    if (self.fs.existsSync(outFilePath)) {
+      // remove any unfinished output file which is hanging around
+      self.fs.unlinkSync(outFilePath);
+    }
+
+    errorOccurred = true;
+
+    dfd.reject(err);
+  };
 
   var req = this.httpClient.getStream(downloadUrl);
 
@@ -88,18 +105,14 @@ Downloader.prototype.download = function (downloadUrl, outDir) {
 
   req.on('end', function (err) {
     if (err) {
-      dfd.reject(err);
-
-      // turn off listeners for the "finish" event, as we don't want
-      // them to fire and resolve the promise
-      errorOccurred = true;
+      handleError(err);
     }
 
     outFile.end();
   });
 
   req.on('error', function (err) {
-    dfd.reject(err);
+    handleError(err);
   });
 
   // this is when we're really done
