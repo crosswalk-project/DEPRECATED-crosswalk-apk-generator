@@ -33,6 +33,26 @@ var Downloader = function (deps) {
 };
 
 /**
+ * Generate the output file name for a given archiveUrl and outDir
+ * output directory. This can be useful for determining where a downloaded
+ * file is going to end up.
+ *
+ * @param {string} archiveUrl - URL of the xwalk-android archive to download
+ * @param {string} outDir - output directory archive is to be downloaded
+ * to
+ *
+ * @returns {string} location of archive in outDir once downloaded
+ */
+Downloader.prototype.getDownloadLocation = function (downloadUrl, outDir) {
+  // the output file path is outDir + the filename part of the downloadUrl
+  var urlPath = url.parse(downloadUrl).pathname;
+  var urlPathParts = urlPath.split('/');
+  var filename = urlPathParts[urlPathParts.length - 1];
+  var outFilePath = path.join(outDir, filename);
+  return outFilePath;
+};
+
+/**
  * Download a file to a specified directory; the file will be placed
  * inside the directory outDir, and have the same name as it has on the
  * remote server.
@@ -46,14 +66,11 @@ var Downloader = function (deps) {
  * (whole numbers) of the total which remains to be downloaded.
  */
 Downloader.prototype.download = function (downloadUrl, outDir) {
+  var self = this;
   var dfd = Q.defer();
   var promise = dfd.promise;
 
-  // the output file path is outDir + the filename part of the downloadUrl
-  var urlPath = url.parse(downloadUrl).pathname;
-  var urlPathParts = urlPath.split('/');
-  var filename = urlPathParts[urlPathParts.length - 1];
-  var outFilePath = path.join(outDir, filename);
+  var outFilePath = this.getDownloadLocation(downloadUrl, outDir);
 
   if (this.fs.existsSync(outFilePath)) {
     dfd.reject(new Error('output file ' + outFilePath + ' already exists'));

@@ -8,6 +8,7 @@
  * found in the LICENSE-APACHE-V2 file. */
 
 // script to download an xwalk-android distribution and unpack it
+var fs = require('fs');
 var nconf = require('nconf');
 var _ = require('lodash');
 var Q = require('q');
@@ -115,8 +116,10 @@ var errorHandler = function (err) {
 
 // show parameters used for the fetch or query
 var showParams = function (params) {
-  logger.log('  architecture = ' + params.arch);
-  logger.log('  channel = ' + params.channel);
+  if (!nconf.get('url')) {
+    logger.log('  architecture = ' + params.arch);
+    logger.log('  channel = ' + params.channel);
+  }
 
   if (params.version) {
     logger.log('  version = ' + params.version);
@@ -171,7 +174,7 @@ var fetch = function () {
       },
 
       function (err) {
-        logger.error('error while retrieving available versions');
+        logger.error('ERROR while retrieving available versions');
         errorHandler(err);
       }
     );
@@ -180,6 +183,22 @@ var fetch = function () {
   paramsDfd.promise
   .then(
     function (params) {
+      // we now know the download URL, so we can figure out
+      // where the downloaded archive is going to end up; this
+      // is so we can remove it if this script is manually interrupted;
+      // note that the Downloader will remove files which are
+      // only partially-downloaded (due to errors) itself
+      var outputFile = downloader.getDownloadLocation(params.url, outDir);
+
+      // to capture Ctrl-C key presses so we can clean up broken output files
+      process.on('SIGINT', function () {
+        if (fs.existsSync(outputFile)) {
+          fs.unlink(outputFile);
+        }
+
+        process.exit();
+      });
+
       logger.log('fetching xwalk-android using parameters:');
       showParams(params);
       return archiveFetcher.fetch(params.url, tarballName, outDir);
