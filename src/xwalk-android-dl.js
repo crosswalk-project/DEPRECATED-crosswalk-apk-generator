@@ -13,7 +13,6 @@ var _ = require('lodash');
 var Q = require('q');
 
 var logger = require('./console-logger')();
-var Env = require('./env');
 var Downloader = require('./downloader');
 var HttpClient = require('./http-client');
 var ArchiveFetcher = require('./archive-fetcher');
@@ -31,7 +30,7 @@ var opts = {
 
   arch: {
     alias: 'a',
-    default: Env.CONFIG_DEFAULTS.arch,
+    default: VersionsFetcher.ARCHS[0],
     describe: 'architecture of xwalk-android to download ("' +
               VersionsFetcher.ARCHS.join('", "') +
               '")'
