@@ -33,6 +33,26 @@ var Downloader = function (deps) {
 };
 
 /**
+ * Generate the output file name for a given archiveUrl and outDir
+ * output directory. This can be useful for determining where a downloaded
+ * file is going to end up.
+ *
+ * @param {string} archiveUrl - URL of the xwalk-android archive to download
+ * @param {string} outDir - output directory archive is to be downloaded
+ * to
+ *
+ * @returns {string} location of archive in outDir once downloaded
+ */
+Downloader.prototype.getDownloadLocation = function (downloadUrl, outDir) {
+  // the output file path is outDir + the filename part of the downloadUrl
+  var urlPath = url.parse(downloadUrl).pathname;
+  var urlPathParts = urlPath.split('/');
+  var filename = urlPathParts[urlPathParts.length - 1];
+  var outFilePath = path.join(outDir, filename);
+  return outFilePath;
+};
+
+/**
  * Download a file to a specified directory; the file will be placed
  * inside the directory outDir, and have the same name as it has on the
  * remote server.
@@ -46,14 +66,11 @@ var Downloader = function (deps) {
  * (whole numbers) of the total which remains to be downloaded.
  */
 Downloader.prototype.download = function (downloadUrl, outDir) {
+  var self = this;
   var dfd = Q.defer();
   var promise = dfd.promise;
 
-  // the output file path is outDir + the filename part of the downloadUrl
-  var urlPath = url.parse(downloadUrl).pathname;
-  var urlPathParts = urlPath.split('/');
-  var filename = urlPathParts[urlPathParts.length - 1];
-  var outFilePath = path.join(outDir, filename);
+  var outFilePath = this.getDownloadLocation(downloadUrl, outDir);
 
   if (this.fs.existsSync(outFilePath)) {
     dfd.reject(new Error('output file ' + outFilePath + ' already exists'));
@@ -65,7 +82,24 @@ Downloader.prototype.download = function (downloadUrl, outDir) {
   var contentLength = 1;
   var downloaded = 0;
   var lastNotifiedPercent = 0;
+
+  // this is set to true to turn off listeners for the "finish" event,
+  // as we don't want them to fire and resolve the promise if an
+  // error occurs at any point
   var errorOccurred = false;
+
+  // run this to clean up any truncated/unfinished output files
+  // and flag an error
+  var handleError = function (err) {
+    if (self.fs.existsSync(outFilePath)) {
+      // remove any unfinished output file which is hanging around
+      self.fs.unlinkSync(outFilePath);
+    }
+
+    errorOccurred = true;
+
+    dfd.reject(err);
+  };
 
   var req = this.httpClient.getStream(downloadUrl);
 
@@ -88,18 +122,14 @@ Downloader.prototype.download = function (downloadUrl, outDir) {
 
   req.on('end', function (err) {
     if (err) {
-      dfd.reject(err);
-
-      // turn off listeners for the "finish" event, as we don't want
-      // them to fire and resolve the promise
-      errorOccurred = true;
+      handleError(err);
     }
 
     outFile.end();
   });
 
   req.on('error', function (err) {
-    dfd.reject(err);
+    handleError(err);
   });
 
   // this is when we're really done

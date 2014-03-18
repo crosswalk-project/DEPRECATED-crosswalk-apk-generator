@@ -26,6 +26,7 @@ var _get = function (url, client, options, callback) {
  * @param {object} options
  * @param {string} [options.proxy] - proxy server configuration, e.g.
  * http://myproxy.local:8080
+ * @param {number} [options.timeout=10000] - timeout in ms
  */
 var HttpClient = function (options, deps) {
   if (!(this instanceof HttpClient)) {
@@ -36,6 +37,7 @@ var HttpClient = function (options, deps) {
   deps = deps || {};
 
   this.proxy = options.proxy;
+  this.timeout = options.timeout || 10000;
   this._httpClient = deps.httpClient || require('request');
 };
 
@@ -59,7 +61,12 @@ HttpClient.prototype.get = function (url) {
     }
   };
 
-  _get(url, this._httpClient, {proxy: this.proxy}, callback);
+  var opts = {
+    proxy: this.proxy,
+    timeout: this.timeout
+  };
+
+  _get(url, this._httpClient, opts, callback);
 
   return dfd.promise;
 };
@@ -73,7 +80,12 @@ HttpClient.prototype.get = function (url) {
  * response, data, end and error events
  */
 HttpClient.prototype.getStream = function (url) {
-  return _get(url, this._httpClient, {proxy: this.proxy});
+  var opts = {
+    proxy: this.proxy,
+    timeout: this.timeout
+  };
+
+  return _get(url, this._httpClient, opts);
 };
 
 module.exports = HttpClient;
