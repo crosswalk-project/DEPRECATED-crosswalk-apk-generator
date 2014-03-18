@@ -109,6 +109,8 @@ The script also supports proxies (though it's only been tested with plain http p
 
     xwalk_android_dl --query --proxy https://myproxy.com:8080
 
+Note that if you have set the standard `http_proxy` environment variable, the script will use it by default.
+
 To see the full range of options, invoke the script with the `--help` option.
 
 ## xwalk_apkgen: create an apk
