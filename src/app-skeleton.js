@@ -291,15 +291,15 @@ AppSkeleton.prototype.generate = function (appData, locations) {
       // copy assets from xwalk_app_template and elsewhere to the assets/
       // directory
       for (i = 0; i < locations.assets.length; i += 1) {
-        shell.cp('-r', locations.assets[i], locations.assetsDir);
+        shell.cp('-rf', locations.assets[i], locations.assetsDir);
       }
 
       // copy values/strings.xml
-      shell.cp('-r', self.assets.values, locations.resDir);
+      shell.cp('-rf', self.assets.values, locations.resDir);
 
       // copy content from appRoot to the assets directory
       if (appData.appRoot) {
-        shell.cp('-r',
+        shell.cp('-rf',
           path.join(appData.appRoot, '*'),
           locations.assetsDir
         );

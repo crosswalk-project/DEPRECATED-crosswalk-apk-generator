@@ -47,6 +47,8 @@ var replaceInvalidChars = function (value, mode) {
  * all the files under this directory will be incorporated into the apk file
  * @param {string} [config.appLocalPath] - location of the application
  * entry HTML page, relative to appRoot
+ * @param {string} [config.manifestPath] - path to manifest file
+ * @param {object} [config.manifest] - content of manifest
  * @param {string} [config.sanitisedName] - a clean version of the name
  * which can be used for a filename; if not set, it defaults to
  * config.name passed through replaceInvalidChars()
@@ -155,6 +157,8 @@ App.CONFIG_DEFAULTS = {
   appUrl: null,
   appRoot: null,
   appLocalPath: null,
+  manifestPath: null,
+  manifest: null,
   remoteDebugging: false,
   jars: [],
   javaSrcDirs: [],
@@ -228,6 +232,12 @@ App.prototype.configure = function (config) {
     config.theme += '.Fullscreen';
   }
 
+  // derive appRoot from the location of the manifest file if appRoot
+  // is not set
+  if (config.manifestPath && !config.appRoot) {
+    config.appRoot = path.dirname(config.manifestPath);
+  }
+
   // check keys
   var errors = [];
 
@@ -257,14 +267,22 @@ App.prototype.configure = function (config) {
   }
 
   var appUrlSet = config.appUrl &&
-                  !(config.appLocalPath || config.appRoot);
+                  !(config.appLocalPath ||
+                    config.appRoot ||
+                    config.manifestPath);
 
   var appRootSet = !config.appUrl &&
-                   config.appLocalPath &&
-                   config.appRoot;
+                   config.appRoot &&
+                   config.appLocalPath;
 
-  if (!appUrlSet && !appRootSet) {
-    errors.push('one of appUrl OR (appLocalPath AND appRoot) must be set');
+  var manifestSet = !config.appUrl &&
+                    !config.appLocalPath &&
+                    config.appRoot &&
+                    config.manifestPath;
+
+  if (!appUrlSet && !appRootSet && !manifestSet) {
+    errors.push('one of appUrl OR (appLocalPath AND appRoot) OR ' +
+                '(manifestPath AND appRoot) must be set');
   }
 
   // test that the app can be located
@@ -276,20 +294,30 @@ App.prototype.configure = function (config) {
       this._finder.checkIsFile(path.join(config.appRoot, config.appLocalPath))
     ]);
   }
+  else if (manifestSet) {
+    appLocated = Q.all([
+      this._finder.checkIsDirectory(config.appRoot),
+      this._finder.checkIsFile(config.manifestPath)
+    ]);
+  }
 
   appLocated.then(
     function (results) {
       var appRootOK = results[0];
-      var appLocalPathOK = results[1];
+      var pathOK = results[1];
 
       if (!appRootOK) {
         errors.push('app root ' + config.appRoot + ' is not a directory; ' +
                     'check appRoot');
       }
-      else if (!appLocalPathOK) {
+      else if (!pathOK && config.appLocalPath) {
         errors.push('expected HTML file at ' + config.appLocalPath +
                     ' does not exist under ' + config.appRoot +
                     '; check appRoot and appLocalPath');
+      }
+      else if (!pathOK && config.manifestPath) {
+        errors.push('expected manifest file at ' + config.manifestPath +
+                    ' does not exist; check manifest path');
       }
 
       // throw exception now if errors occurred
@@ -298,6 +326,12 @@ App.prototype.configure = function (config) {
                              errors.join('\n')));
       }
       else {
+        // get a localised version of the manifest path to use
+        // as the appLocalPath
+        if (config.manifest) {
+          config.appLocalPath = path.basename(config.manifestPath);
+        }
+
         // clean up the name and pkg properties if set
         config.sanitisedName = config.sanitisedName ||
                                replaceInvalidChars(config.name);

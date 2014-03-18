@@ -53,7 +53,8 @@ describe('AppSkeleton', function () {
     javaSrcDirs: [],
     extensionsJsFiles: [],
     version: '1.0.0',
-    orientation: null
+    orientation: null,
+    manifest: null
   };
 
   // Locations object pointing at the output directory

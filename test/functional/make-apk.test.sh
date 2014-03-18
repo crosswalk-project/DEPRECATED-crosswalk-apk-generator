@@ -13,7 +13,7 @@ if [ "x" = "x$androidSDKDir" ] ; then
 fi
 
 if [ "x" = "x$xwalkAndroidDir" ] ; then
-  echo echo 'Please set the xwalkAndroidDir environment variable first'
+  echo 'Please set the xwalkAndroidDir environment variable first'
   exit 1
 fi
 
@@ -23,9 +23,8 @@ OUT_DIR=$WD/build/make_apk
 # make the apk
 $WD/../../bin/xwalk_apkgen \
   -o $OUT_DIR \
-  --appRoot=$WD/demo-app \
-  --appLocalPath=index.html \
-  --name "X make apk test sh" \
+  --manifest $WD/x-demo-app-manifest.json \
+  --app-root $WD/demo-app \
   --package "make.apk" \
   --icon "$WD/demo-app/icon.png" \
   --keystore $WD/custom-keystore/mycerts.jks \

@@ -244,6 +244,32 @@ _.each(App.CONFIG_DEFAULTS, function (value, key) {
   appConfig[key] = nconf.get(key);
 });
 
+// if manifest is set, that clears a couple of settings which
+// are irrelevant;
+// it also sets the name for the app, overriding any other setting
+// (we need this as we use it for class name, apk file name etc.);
+// it also sets the App.manifestPath to the basename of the file
+// so we can write the manifest local path into the Java activity file
+if (appConfig.manifest && fs.existsSync(appConfig.manifest)) {
+  var manifest = JSON.parse(fs.readFileSync(appConfig.manifest, 'utf8'));
+
+  appConfig.manifestPath = appConfig.manifest;
+  appConfig.manifest = manifest;
+
+  if (!appConfig.name) {
+    appConfig.name = manifest.name;
+  }
+
+  appConfig.appLocalPath = null;
+  appConfig.appUrl = null;
+
+  // we can set these to null once the "real" manifest is supported
+  //appConfig.orientation = null;
+  //appConfig.fullscreen = null;
+
+  // TODO icons
+}
+
 // set the extensions key for appConfig
 appConfig.extensions = extensions;
 

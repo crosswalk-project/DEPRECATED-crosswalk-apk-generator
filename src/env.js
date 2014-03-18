@@ -540,6 +540,11 @@ Env.prototype.build = function (app, locations) {
     locations.addResources('chromiumContent', this.chromiumContentResources);
   }
 
+  // if the app has a manifest, copy it over
+  if (app.manifest) {
+    locations.addAssets(app.manifestPath);
+  }
+
   // create an object for use in the templates which contains the
   // icon name, target SDK version, package etc.
   var appData = {
@@ -553,6 +558,7 @@ Env.prototype.build = function (app, locations) {
     appUrl: app.appUrl,
     appRoot: app.appRoot,
     appLocalPath: app.appLocalPath,
+    manifest: app.manifest,
     javaSrcDirs: javaSrcDirs,
     extensionsJsFiles: app.getExtensionsJsFiles(),
 

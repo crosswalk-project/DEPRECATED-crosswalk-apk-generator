@@ -56,8 +56,8 @@ describe('App', function () {
     testException(config, done, [/name must be set/], /pkg must be set/);
   });
 
-  it('should throw an error if (appUrl || (appRoot && appLocalPath)) not set', function (done) {
-    var expectedMsg = /one of appUrl OR \(appLocalPath AND appRoot\) must be set/;
+  it('should throw an error if app location not set', function (done) {
+    var expectedMsg = /one of appUrl OR \(appLocalPath AND appRoot\) OR \(manifestPath AND appRoot\) must be set/;
 
     var config = {
       name: 'foo',

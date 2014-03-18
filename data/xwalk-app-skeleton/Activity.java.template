@@ -41,11 +41,15 @@ public class <%= activityClassName %> extends XWalkRuntimeActivityBase {
               if (appUrl) {
                 url = appUrl;
               }
-              else {
+              else if (appLocalPath) {
                 url = "file:///android_asset/" + appLocalPath;
               }
             %>
+            <% if (manifest) { %>
+            getRuntimeView().loadAppFromManifest("<%= url %>");
+            <% } else { %>
             getRuntimeView().loadAppFromUrl("<%= url %>");
+            <% } %>
         }
         else {
             TextView msgText = new TextView(this);

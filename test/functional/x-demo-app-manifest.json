@@ -1,0 +1,8 @@
+{
+  "name": "X demo app",
+  "app": {
+    "launch": {
+      "local_path": "index.html"
+    }
+  }
+}
