@@ -215,6 +215,7 @@ describe('App', function () {
         app.appLocalPath.should.equal('index.html');
 
         // test defaults have been set
+        app.sanitisedName.should.equal('test');
         app.icon.should.equal('');
         app.remoteDebugging.should.be.false;
         app.fullscreen.should.be.true;
