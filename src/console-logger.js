@@ -55,9 +55,11 @@ ConsoleLogger.prototype.write = function (msg) {
  * @param {string} msg - message to write
  */
 ConsoleLogger.prototype.replace = function (msg) {
-  process.stdout.clearLine();  // clear current text
-  process.stdout.cursorTo(0);  // move cursor to beginning of line
-  process.stdout.write(msg);
+  if (process.stdout.isTTY) {
+    process.stdout.clearLine();  // clear current text
+    process.stdout.cursorTo(0);  // move cursor to beginning of line
+    process.stdout.write(msg);
+  }
 };
 
 /**
