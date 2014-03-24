@@ -127,6 +127,7 @@ In most simple cases, you only need to specify a few options, like this:
       --appLocalPath <main HTML file relative to app-root> \
       --name <app name> \
       --package <app Java package> \
+      --version <app version> \
       --outDir <output directory>
 
 For example, given this Linux environment:
@@ -138,6 +139,7 @@ For example, given this Linux environment:
 *   main HTML file = "index.html"
 *   application name = "My app"
 *   Java package = "me.myname.myapp"
+*   application version = "0.0.1"
 *   output directory = "build"
 
 the command would be:
@@ -148,6 +150,7 @@ the command would be:
       --appLocalPath index.html \
       --name "My app" \
       --package "me.myname.myapp" \
+      --version 0.0.1 \
       --outDir build
 
 This produces an apk file in the output directory you specified. The name of the output file is based on the `--name` you specified, with any path-sensitive characters replaced (whitespace, forward slashes etc.). In the example given, the final output apk would be in `build/My_app.apk`. All the intermediate files produced during the build will also be in the `build` directory.
@@ -160,7 +163,8 @@ As an alternative, you could put your app options into an `app.config.json` JSON
       "appRoot": "/home/me/projects/myapp",
       "appLocalPath": "index.html",
       "name": "My app",
-      "package": "me.myname.myapp"
+      "package": "me.myname.myapp",
+      "version": "0.0.1"
     }
 
 and then, specifying the Android SDK directory using an environment variable, do the same build with:
