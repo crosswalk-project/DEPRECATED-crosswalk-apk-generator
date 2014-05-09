@@ -27,12 +27,6 @@ var VersionsFetcher = function (deps) {
 };
 
 /**
- * @desc Valid architectures for Crosswalk Android.
- * @member {object} VersionsFetcher.ARCHS
- */
-VersionsFetcher.ARCHS = ['x86', 'arm'];
-
-/**
  * @desc Valid channels for Crosswalk Android.
  * @member {object} VersionsFetcher.CHANNELS
  */
