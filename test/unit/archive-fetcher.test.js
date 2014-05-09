@@ -69,7 +69,7 @@ describe('ArchiveFetcher', function () {
       done(e);
     };
 
-    archiveFetcher.fetch('http://foo/bar.zip', 'bar_template', 'tmp')
+    archiveFetcher.fetch('http://foo/bar.zip', 'tmp')
     .should.be.rejectedWith(/network error/).and.notify(finish);
   });
 
@@ -82,7 +82,7 @@ describe('ArchiveFetcher', function () {
       done(e);
     };
 
-    archiveFetcher.fetch('http://foo/bar.zip', 'bar_template', 'tmp')
+    archiveFetcher.fetch('http://foo/bar.zip', 'tmp')
     .should.be.rejectedWith(/bad zip file/).and.notify(finish);
   });
 

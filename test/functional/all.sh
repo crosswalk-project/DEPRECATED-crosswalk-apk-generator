@@ -21,12 +21,12 @@ CHANNEL=$2
 : ${ARCH:=x86}
 : ${CHANNEL:=beta}
 
-latest_version=`node get-xwalk-android-latest.js $ARCH $CHANNEL`
+latest_version=`node get-xwalk-android-latest.js $CHANNEL`
 
-export xwalkAndroidDir="$WD/crosswalk-$latest_version-$ARCH/xwalk_app_template"
+export xwalkAndroidDir="$WD/crosswalk-$latest_version"
 
 if [ ! -d $xwalkAndroidDir ] ; then
-  $WD/../../bin/xwalk_android_dl --arch $ARCH --channel $CHANNEL -o $WD
+  $WD/../../bin/xwalk_android_dl --channel $CHANNEL -o $WD
   echo '**************************************'
 fi
 
