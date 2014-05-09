@@ -50,7 +50,7 @@ VersionsFetcher.RELEASES_URL = 'https://download.01.org/crosswalk/releases/';
  * @member {object} VersionsFetcher.ARCH_URL_TPL
  */
 VersionsFetcher.CHANNELS_URL_TPL = VersionsFetcher.RELEASES_URL +
-                                   'android-<%= arch %>/';
+                                   'crosswalk/android/<%= channel %>/';
 
 /**
  * @desc Template for creating URLs for Crosswalk Android release pages
@@ -58,19 +58,13 @@ VersionsFetcher.CHANNELS_URL_TPL = VersionsFetcher.RELEASES_URL +
  * canary).
  * @member {object} VersionsFetcher.CHANNEL_URL_TPL
  */
-VersionsFetcher.DOWNLOADS_URL_TPL = VersionsFetcher.CHANNELS_URL_TPL +
-                                    '<%= channel %>/';
+VersionsFetcher.DOWNLOADS_URL_TPL = VersionsFetcher.CHANNELS_URL_TPL;
 
 // private helper functions
 var validate = function (data) {
   var dfd = Q.defer();
 
   var errors = [];
-
-  if (data.hasOwnProperty('arch') &&
-      !_.contains(VersionsFetcher.ARCHS, data.arch)) {
-    errors.push('invalid arch specified');
-  }
 
   if (data.hasOwnProperty('channel') &&
       !_.contains(VersionsFetcher.CHANNELS, data.channel)) {
@@ -89,7 +83,7 @@ var validate = function (data) {
 
 var parentDirRegex = /Parent Directory/i;
 var lineRegEx = /<img.*> <a href=\"(.+)\">(.+)<\/a>\s+(\d{2}-\w{3}-\d{4} \d{2}:\d{2})/;
-var crosswalkPackageNameRegex = /^crosswalk-.*(\d+\.\d+\.\d+\.\d+).+$/;
+var crosswalkPackageNameRegex = /^(\d+\.\d+\.\d+\.\d+)\/$/;
 
 // get all the files after the "Parent Directory" link in a standard
 // Apache directory index page; returns an array of files, sorted
@@ -145,8 +139,7 @@ VersionsFetcher.prototype.getUrl = function (url) {
 };
 
 /**
- * Get the xwalk-android version numbers for an arch/channel pair.
- * @param {string} arch Architecture; one of VersionsFetcher.ARCHS
+ * Get the xwalk-android version numbers for a channel.
  * @param {string} channel Channel; one of VersionsFetcher.CHANNELS
  * @returns {external:Promise} resolves to an object representing
  * the files on the server (most recently modified first),
@@ -154,28 +147,27 @@ VersionsFetcher.prototype.getUrl = function (url) {
  *
  * Example output:
 
- { url: 'http://download.01.org/crosswalk/releases/android-x86/stable/',
-   arch: 'x86',
+ { url: 'http://download.01.org/crosswalk/releases/crosswalk/android/stable/',
    channel: 'stable',
    files:
-    [ { name: 'crosswalk-2.31.27.5-x86.zip',
-        url: 'https://download.01.org/crosswalk/releases/android-x86/stable/crosswalk-2.31.27.5-x86.zip',
+    [ { name: 'crosswalk-2.31.27.5.zip',
+        url: 'https://download.01.org/crosswalk/releases/crosswalk/android/stable/crosswalk-2.31.27.5.zip',
         lastModified: Fri Dec 20 2013 10:18:00 GMT+0000 (GMT),
         version: '2.31.27.5' },
       { name: 'crosswalk-1.29.4.7.zip',
-        url: 'https://download.01.org/crosswalk/releases/android-x86/stable/crosswalk-1.29.4.7.zip',
+        url: 'https://download.01.org/crosswalk/releases/crosswalk/android/stable/crosswalk-1.29.4.7.zip',
         lastModified: Mon Nov 11 2013 01:17:00 GMT+0000 (GMT),
         version: '1.29.4.7' } ] }
 
  */
-VersionsFetcher.prototype.getDownloads = function (arch, channel) {
+VersionsFetcher.prototype.getDownloads = function (channel) {
   var dfd = Q.defer();
   var self = this;
 
-  var data = {arch: arch, channel: channel};
+  var data = {channel: channel};
   var url = null;
 
-  // check arch and channel
+  // check channel
   validate(data)
   .then(
     function () {
@@ -189,6 +181,9 @@ VersionsFetcher.prototype.getDownloads = function (arch, channel) {
 
       entries = _.select(entries, function (entry) {
         entry.version = getVersionString(entry.name);
+        if (entry.version) {
+          entry.url = entry.url+"crosswalk-"+entry.version+".zip";
+        }
 
         // if no version string, don't include this entry
         return entry.version;
@@ -197,7 +192,6 @@ VersionsFetcher.prototype.getDownloads = function (arch, channel) {
       return {
         type: 'Downloads',
         url: url,
-        arch: arch,
         channel: channel,
         files: entries
       };
@@ -210,16 +204,15 @@ VersionsFetcher.prototype.getDownloads = function (arch, channel) {
 
 /**
  * Get the list of xwalk-android channels for the specified architecture.
- * @param {string} arch Architecture; one of VersionsFetcher.ARCHS
  * @returns {external:Promise} resolves to an object representing
  * the channels available, or rejects with an error if the
  * download site is not available.
  */
-VersionsFetcher.prototype.getChannels = function (arch) {
+VersionsFetcher.prototype.getChannels = function () {
   var dfd = Q.defer();
   var self = this;
 
-  var data = {arch: arch};
+  var data = {};
   var url = null;
 
   validate(data)
@@ -244,7 +237,6 @@ VersionsFetcher.prototype.getChannels = function (arch) {
       return {
         type: 'Channels',
         url: url,
-        arch: arch,
         channels: entries
       };
     }
