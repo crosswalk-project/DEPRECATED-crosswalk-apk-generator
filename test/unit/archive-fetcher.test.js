@@ -86,26 +86,6 @@ describe('ArchiveFetcher', function () {
     .should.be.rejectedWith(/bad zip file/).and.notify(finish);
   });
 
-  it('should reject if xwalk app template unpack fails', function (done) {
-    var stub = sinon.stub(unpacker, 'unpack');
-
-    // zip file unpack should succeed
-    stub.withArgs('xwalk-android.zip', 'tmp').returns(Q.resolve());
-
-    // tar file unpack should fail
-    stub.withArgs(sinon.match(/xwalk_app_template.tar.gz/)).returns(
-      Q.reject(new Error('bad tar file'))
-    );
-
-    var finish = function (e) {
-      stub.restore();
-      done(e);
-    };
-
-    archiveFetcher.fetch('http://foo/bar.zip', 'xwalk_app_template.tar.gz', 'tmp')
-    .should.be.rejectedWith(/bad tar file/).and.notify(finish);
-  });
-
   it('should report progress and resolve to template dir if all steps succeed', function (done) {
     var replaceSpy = sinon.spy(logger, 'replace');
     var logSpy = sinon.spy(logger, 'log');
