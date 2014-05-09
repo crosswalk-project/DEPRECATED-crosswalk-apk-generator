@@ -91,8 +91,8 @@ describe('ArchiveFetcher', function () {
     var logSpy = sinon.spy(logger, 'log');
 
     // check that the resulting output path matches tmp/bar/xwalk_app_template,
-    // which is out directory + zip file basename + 'xwalk_app_template'
-    var expected = new RegExp('tmp.+bar.+xwalk_app_template');
+    // which is out directory (tmp) + zip file basename (bar)
+    var expected = new RegExp('tmp.+bar');
 
     var finish = function (e) {
       replaceSpy.restore();
@@ -100,10 +100,10 @@ describe('ArchiveFetcher', function () {
       done(e);
     };
 
-    archiveFetcher.fetch('http://foo/bar.zip', 'xwalk_app_template.tar.gz', 'tmp')
+    archiveFetcher.fetch('http://foo/bar.zip', 'tmp')
     .done(
       function (result) {
-        logSpy.callCount.should.equal(4);
+        logSpy.callCount.should.equal(3);
 
         try {
           replaceSpy.callCount.should.equal(2, 'replaceSpy.callCount');
