@@ -77,7 +77,9 @@ ArchiveFetcher.prototype.fetch = function (archiveUrl, outDir) {
     function () {
       self.logger.log('xwalk-android zip file unpacked successfully\n');
       dfd.resolve(xwalkUnpackedDir);
-    }
+    },
+
+    dfd.reject
   );
 
   return dfd.promise;
