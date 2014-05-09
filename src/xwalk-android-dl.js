@@ -23,18 +23,10 @@ var generalUsage = require('./usage');
 // configure
 var opts = {
   urlTemplate: {
-    default: 'https://download.01.org/crosswalk/releases/android-' +
-             '<%= arch %>/<%= channel %>/crosswalk-<%= version %>-<%= arch %>.zip',
+    default: 'https://download.01.org/crosswalk/releases/crosswalk/android/'+
+             '<%= channel %>/<%= version %>/crosswalk-<%= version %>.zip',
     describe: 'lodash template used to construct the package URL from ' +
-              'the arch, channel and version options'
-  },
-
-  arch: {
-    alias: 'a',
-    default: VersionsFetcher.ARCHS[0],
-    describe: 'architecture of xwalk-android to download ("' +
-              VersionsFetcher.ARCHS.join('", "') +
-              '")'
+              'the channel and version options'
   },
 
   channel: {
@@ -58,25 +50,19 @@ var opts = {
 
   query: {
     alias: 'q',
-    describe: 'query the list of available packages for the specified ' +
-              'arch or arch+channel'
+    describe: 'query the list of available packages for the specified channel'
   },
 
   json: {
     default: false,
     describe: 'only applicable if using --query; return data about ' +
-              'downloads for arch/channel as JSON'
+              'downloads for channel as JSON'
   },
 
   outDir: {
     alias: 'o',
     default: '.',
     describe: 'directory to download zip file to'
-  },
-
-  tarballName: {
-    default: 'xwalk_app_template.tar.gz',
-    describe: 'name of the xwalk_app_template tarball inside the xwalk-android zip file'
   },
 
   proxy: {
@@ -94,7 +80,6 @@ nconf.argv(opts);
 
 // parameters to work with
 var params = {
-  arch: nconf.get('arch'),
   channel: nconf.get('channel'),
   version: nconf.get('version')
 };
@@ -117,7 +102,6 @@ var errorHandler = function (err) {
 // show parameters used for the fetch or query
 var showParams = function (params) {
   if (!nconf.get('url')) {
-    logger.log('  architecture = ' + params.arch);
     logger.log('  channel = ' + params.channel);
   }
 
@@ -141,8 +125,7 @@ var archiveFetcher = ArchiveFetcher({
 
 // fetch an xwalk-android zip file
 var fetch = function () {
-  // derive the tarballName and outDir
-  var tarballName = nconf.get('tarballName');
+  // derive the outDir
   var outDir = nconf.get('outDir');
 
   var paramsDfd = Q.defer();
@@ -165,12 +148,17 @@ var fetch = function () {
   // no version specified and no url option, so get the latest version,
   // based on arch and channel
   else {
-    versionsFetcher.getDownloads(params.arch, params.channel)
+    versionsFetcher.getDownloads(params.channel)
     .done(
       function (results) {
-        params.version = results.files[0].version;
-        params.url = results.files[0].url;
-        return paramsDfd.resolve(params);
+        if (results.files.length>0) {
+          params.version = results.files[0].version;
+          params.url = results.files[0].url;
+          return paramsDfd.resolve(params);
+        } else {
+          logger.error('ERROR no files found at '+results.url);
+          process.exit(1);
+        }
       },
 
       function (err) {
@@ -201,7 +189,7 @@ var fetch = function () {
 
       logger.log('fetching xwalk-android using parameters:');
       showParams(params);
-      return archiveFetcher.fetch(params.url, tarballName, outDir);
+      return archiveFetcher.fetch(params.url, outDir);
     }
   )
   .done(
@@ -217,7 +205,7 @@ var fetch = function () {
 };
 
 var getVersions = function () {
-  versionsFetcher.getDownloads(nconf.get('arch'), nconf.get('channel'))
+  versionsFetcher.getDownloads(nconf.get('channel'))
   .done(
     function (results) {
       if (nconf.get('json')) {
@@ -258,7 +246,7 @@ if (nconf.get('help')) {
   logger.log(msg);
   process.exit(0);
 }
-// query: show all versions for arch and channel
+// query: show all versions channel
 else if (nconf.get('query')) {
   getVersions();
 }

@@ -2,16 +2,15 @@
  * Use of this source code is governed by an Apache v2 license that can be
  * found in the LICENSE-APACHE-V2 file. */
 
-// fetch the latest x86 beta xwalk-android version ONLY;
+// fetch the latest beta xwalk-android version ONLY;
 // this is used by the other test scripts to figure out where
 // xwalkAndroidDir is
 var versionsFetcher = require('../../src/versions-fetcher')();
 var consoleLogger = require('../../src/console-logger')();
 
-var arch = process.argv[2] || 'x86';
 var channel = process.argv[3] || 'beta';
 
-versionsFetcher.getDownloads(arch, channel)
+versionsFetcher.getDownloads(channel)
 .done(
   function (results) {
     if (results.files.length === 0) {

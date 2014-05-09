@@ -69,7 +69,7 @@ describe('ArchiveFetcher', function () {
       done(e);
     };
 
-    archiveFetcher.fetch('http://foo/bar.zip', 'bar_template', 'tmp')
+    archiveFetcher.fetch('http://foo/bar.zip', 'tmp')
     .should.be.rejectedWith(/network error/).and.notify(finish);
   });
 
@@ -82,28 +82,8 @@ describe('ArchiveFetcher', function () {
       done(e);
     };
 
-    archiveFetcher.fetch('http://foo/bar.zip', 'bar_template', 'tmp')
+    archiveFetcher.fetch('http://foo/bar.zip', 'tmp')
     .should.be.rejectedWith(/bad zip file/).and.notify(finish);
-  });
-
-  it('should reject if xwalk app template unpack fails', function (done) {
-    var stub = sinon.stub(unpacker, 'unpack');
-
-    // zip file unpack should succeed
-    stub.withArgs('xwalk-android.zip', 'tmp').returns(Q.resolve());
-
-    // tar file unpack should fail
-    stub.withArgs(sinon.match(/xwalk_app_template.tar.gz/)).returns(
-      Q.reject(new Error('bad tar file'))
-    );
-
-    var finish = function (e) {
-      stub.restore();
-      done(e);
-    };
-
-    archiveFetcher.fetch('http://foo/bar.zip', 'xwalk_app_template.tar.gz', 'tmp')
-    .should.be.rejectedWith(/bad tar file/).and.notify(finish);
   });
 
   it('should report progress and resolve to template dir if all steps succeed', function (done) {
@@ -111,8 +91,8 @@ describe('ArchiveFetcher', function () {
     var logSpy = sinon.spy(logger, 'log');
 
     // check that the resulting output path matches tmp/bar/xwalk_app_template,
-    // which is out directory + zip file basename + 'xwalk_app_template'
-    var expected = new RegExp('tmp.+bar.+xwalk_app_template');
+    // which is out directory (tmp) + zip file basename (bar)
+    var expected = new RegExp('tmp.+bar');
 
     var finish = function (e) {
       replaceSpy.restore();
@@ -120,10 +100,10 @@ describe('ArchiveFetcher', function () {
       done(e);
     };
 
-    archiveFetcher.fetch('http://foo/bar.zip', 'xwalk_app_template.tar.gz', 'tmp')
+    archiveFetcher.fetch('http://foo/bar.zip', 'tmp')
     .done(
       function (result) {
-        logSpy.callCount.should.equal(4);
+        logSpy.callCount.should.equal(3);
 
         try {
           replaceSpy.callCount.should.equal(2, 'replaceSpy.callCount');

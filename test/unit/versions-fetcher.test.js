@@ -18,7 +18,7 @@ describe('VersionsFetcher', function () {
 
     var fetcher = VersionsFetcher({urlFetchFn: stubFetchFn});
 
-    it('should fail if arch and channel are not specified', function (done) {
+    it('should fail if channel is not specified', function (done) {
       fetcher.getDownloads()
       .done(
         function () {
@@ -26,7 +26,7 @@ describe('VersionsFetcher', function () {
         },
 
         function (e) {
-          if (/arch/.test(e.message) && /channel/.test(e.message)) {
+          if (/channel/.test(e.message)) {
             done();
           }
           else {
@@ -40,20 +40,6 @@ describe('VersionsFetcher', function () {
       fetcher.getDownloads('x86')
       .should.be.rejectedWith(/channel/)
       .and.should.not.be.rejectedWith(/arch/)
-      .and.notify(done);
-    });
-
-    it('should fail if arch is not specified but channel is', function (done) {
-      fetcher.getDownloads(null, 'stable')
-      .should.be.rejectedWith(/arch/)
-      .and.should.not.be.rejectedWith(/channel/)
-      .and.notify(done);
-    });
-
-    it('should fail for invalid arch', function (done) {
-      fetcher.getDownloads('jdjdjdj', 'stable')
-      .should.be.rejectedWith(/arch/)
-      .and.should.not.be.rejectedWith(/channel/)
       .and.notify(done);
     });
 
