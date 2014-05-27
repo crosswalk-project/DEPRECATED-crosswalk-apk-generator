@@ -129,8 +129,8 @@ var App = function (config, deps) {
  * @member {object} App.CONFIG_DEFAULTS
  *
  * @property {string[]} permissions - set to
- * ['ACCESS_NETWORK_STATE', 'CAMERA', 'INTERNET', 'RECORD_AUDIO',
- * 'WAKE_LOCK', 'WRITE_EXTERNAL_STORAGE']
+ * ['ACCESS_NETWORK_STATE', 'ACCESS_WIFI_STATE', 'CAMERA', 'INTERNET',
+ * 'RECORD_AUDIO', 'WAKE_LOCK', 'WRITE_EXTERNAL_STORAGE']
  * @property {string} theme - set to 'Theme.Holo.Light.NoActionBar'
  * @property {boolean} fullscreen - set to true
  * @property {boolean} remoteDebugging - set to false
@@ -145,6 +145,7 @@ App.CONFIG_DEFAULTS = {
   permissions: [
     'ACCESS_FINE_LOCATION',
     'ACCESS_NETWORK_STATE',
+    'ACCESS_WIFI_STATE',
     'CAMERA',
     'INTERNET',
     'MODIFY_AUDIO_SETTINGS',

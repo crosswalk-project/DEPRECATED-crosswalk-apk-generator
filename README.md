@@ -239,6 +239,7 @@ The default permissions (if you don't specify any) are:
 
 *   `ACCESS_FINE_LOCATION`
 *   `ACCESS_NETWORK_STATE`
+*   `ACCESS_WIFI_STATE`
 *   `CAMERA`
 *   `INTERNET`
 *   `MODIFY_AUDIO_SETTINGS`

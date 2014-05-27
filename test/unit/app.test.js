@@ -223,6 +223,7 @@ describe('App', function () {
         app.permissions.should.eql([
           'ACCESS_FINE_LOCATION',
           'ACCESS_NETWORK_STATE',
+          'ACCESS_WIFI_STATE',
           'CAMERA',
           'INTERNET',
           'MODIFY_AUDIO_SETTINGS',
