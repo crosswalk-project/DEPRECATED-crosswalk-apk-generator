@@ -92,10 +92,6 @@ var locateFiles = function (finder, config) {
 
   // test executables and files are all where we want them
   var tests = [
-    // Java should be the Sun version, not the OpenJDK one,
-    // hence the Java(TM) regex
-    finder.checkExecutable(config.java, ['-version'], /Java\(TM\)/m),
-
     finder.checkExecutable(config.javac, ['-version']),
     finder.checkExecutable(config.ant, ['-version']),
     finder.checkExecutable(config.jarsigner, ['-help'], /Usage: jarsigner/, 1)
