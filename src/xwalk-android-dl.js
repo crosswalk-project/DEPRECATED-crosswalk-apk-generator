@@ -178,6 +178,13 @@ var fetch = function () {
       // only partially-downloaded (due to errors) itself
       var outputFile = downloader.getDownloadLocation(params.url, outDir);
 
+      if (fs.existsSync(outputFile))
+      {
+        //do not fail, so other tasks may continue
+        logger.log(outputFile + " already exists - not downloading");
+        process.exit(0);
+      }
+
       // to capture Ctrl-C key presses so we can clean up broken output files
       process.on('SIGINT', function () {
         if (fs.existsSync(outputFile)) {
@@ -189,7 +196,9 @@ var fetch = function () {
 
       logger.log('fetching xwalk-android using parameters:');
       showParams(params);
-      return archiveFetcher.fetch(params.url, outDir);
+
+      var result = archiveFetcher.fetch(params.url, outDir);
+      return result;
     }
   )
   .done(
