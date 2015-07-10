@@ -75,8 +75,8 @@ var validate = function (data) {
   return dfd.promise;
 };
 
-var parentDirRegex = /Parent Directory/i;
-var lineRegEx = /<img.*> <a href=\"(.+)\">(.+)<\/a>\s+(\d{2}-\w{3}-\d{4} \d{2}:\d{2})/;
+// match lines with [DIR] images, and extract name, href and date/time
+var lineRegEx = /<img[^>]* alt=\"\[DIR\]\">[^<]*<a\s+href=\"(.+)\">([^<]+)<\/a>\s*(\d{4}-\d{2}-\d{2} \d{2}:\d{2})/;
 var crosswalkPackageNameRegex = /^(\d+\.\d+\.\d+\.\d+)\/$/;
 
 // get all the files after the "Parent Directory" link in a standard
@@ -85,17 +85,15 @@ var crosswalkPackageNameRegex = /^(\d+\.\d+\.\d+\.\d+)\/$/;
 var parseApacheIndex = function (url, content) {
   content = content.toString();
 
-  // ignore all lines until we get to the first one after
-  // "Parent Directory"
+  // go through all lines, and push lineRegEx matches into
+  // an array
   var lines = content.split('\n');
   var files = [];
 
   for (var i = 0; i < lines.length; i += 1) {
-    if (parentDirRegex.test(lines[i])) {
-      continue;
-    }
+    var thisLine = lines[i];
 
-    var matches = lines[i].match(lineRegEx);
+    var matches = thisLine.match(lineRegEx);
 
     if (matches) {
       files.push({
