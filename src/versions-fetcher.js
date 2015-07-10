@@ -174,7 +174,7 @@ VersionsFetcher.prototype.getDownloads = function (channel) {
       entries = _.select(entries, function (entry) {
         entry.version = getVersionString(entry.name);
         if (entry.version) {
-          entry.url = entry.url+"crosswalk-"+entry.version+".zip";
+          entry.url = entry.url+'crosswalk-'+entry.version+'.zip';
         }
 
         // if no version string, don't include this entry
