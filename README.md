@@ -1,3 +1,5 @@
+PLEASE USE [Crosswalk App Tools](https://github.com/crosswalk-project/crosswalk-app-tools) instead of this tool.
+
 # Introduction
 
 [Crosswalk](https://crosswalk-project.org) is a web runtime for Android, Tizen, Linux and Windows. It enables a developer to write an HTML5 application and run it on any of Crosswalk's supported platforms.
